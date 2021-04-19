@@ -22,24 +22,29 @@ app.listen(3000, () => {
   console.log('server started');
 });
 
-// get data from database and send it to front-end
+//
 app.post('/api', async (request, response) => {
   let id = request.body.str;
   console.log('Got a request: ' + id);
 
   const url = 'http://javid.ddns.net/tModLoader/tools/ranksbysteamid.php?steamid64=' + id;
+
+  // scrape data
   const mods = await scrapeData(url)
 
   console.log(mods);
 
-  await generateImage(mods, response);
+  // generate image using JIMP
+  await generateImage(mods);
 
+  // generate and get imgur link
   const link = await uploadImage();
 
   // send data to frontend
   response.status(200).send({"url": link});
 });
 
+// returns a json array
 async function scrapeData(url) {
   let mods = [];
 
@@ -89,9 +94,11 @@ async function generateImage(mods) {
     .catch(err => console.error(err));
 }
 
+// returns a imgur link to the image
 async function uploadImage() {
   const json = await imgur.uploadFile('output.png');
   const link = json.link;
+  
   console.log(link);
   return link;
 }
