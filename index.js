@@ -35,13 +35,14 @@ app.post('/api', async (request, response) => {
   console.log(mods);
 
   // generate image using JIMP
-  //await generateImage(mods);
+  await generateImage(mods);
 
   // generate and get imgur link
-  //const link = await uploadImage();
+  const link = await uploadImage();
 
+  response.redirect(link);
   // send data to frontend
-  response.status(200).send(mods);
+  //response.status(200).send(mods);
 });
 
 // returns a json array
