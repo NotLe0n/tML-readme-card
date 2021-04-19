@@ -1,0 +1,19 @@
+{
+  "name": "dynamictmlstats",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./index.js"
+  },
+  "keywords": [],
+  "author": "NotLe0n <mr.sheep75@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "cheerio": "^1.0.0-rc.6",
+    "express": "^4.17.1",
+    "jimp": "^0.16.1",
+    "puppeteer": "^8.0.0"
+  }
+}
