@@ -21,11 +21,8 @@ async function getData(steamid64) {
     var response = await fetch('/api', options);
     let info = await response.json();
     console.log(info);
-  
-    if (response.status == 200) {
-        const html = `<img src="./output.png"></img>`
-        document.body.innerHTML = html;
-    }
+
+    window.location.replace(info.url);
 }
     //const html = `<h1>${JSON.stringify(info)}</h1>`;
     //document.body.innerHTML = html;

@@ -4,7 +4,8 @@ const path = require('path');
 const app = express();
 const axios = require('axios');
 const cheerio = require('cheerio');
-var Jimp = require('jimp');
+const Jimp = require('jimp');
+const imgur = require('imgur');
 
 // fixes file paths
 app.use(express.static(__dirname));
@@ -27,59 +28,72 @@ app.post('/api', async (request, response) => {
   console.log('Got a request: ' + id);
 
   const url = 'http://javid.ddns.net/tModLoader/tools/ranksbysteamid.php?steamid64=' + id;
-  let mods = [];
+  const mods = await scrapeData(url)
 
-  axios(url)
-      .then(site => {
-        const html = site.data;
-        const $ = cheerio.load(html);
+  console.log(mods);
 
-        // find the *first* table
-        const table = $('.primary')[0];
-        // firstChild is the <tbody>, get its children
-        const rows = table.firstChild.children;
+  await generateImage(mods, response);
 
-        let RankTotal;
-        let DisplayName;
-        let DownloadsTotal;
-        let DownloadsYesterday;
+  const link = await uploadImage();
 
-        // go trough all rows and grab the data
-        for (let i = 1; i < rows.length; i++) {
-          RankTotal = rows[i].children[0].children[0].data;
-          DisplayName = rows[i].children[1].children[0].data;
-          DownloadsTotal = rows[i].children[2].children[0].data;
-          DownloadsYesterday = rows[i].children[3].children[0].data;
-        
-          // generate json
-          mods.push({
-            "DisplayName": DisplayName,
-            "RankTotal": RankTotal,
-            "DownloadsTotal": DownloadsTotal,
-            "DownloadsYesterday": DownloadsYesterday
-          });
-        }
-        console.log(mods);
-
-        generateImage(JSON.stringify(mods));
-      }).catch(console.error);
-
-      // send data to frontend
-      setTimeout(function() {
-        response.status(200).send(JSON.stringify(mods));
-      }, 3000);
+  // send data to frontend
+  response.status(200).send({"url": link});
 });
 
-async function generateImage(mod) {
+async function scrapeData(url) {
+  let mods = [];
+
+  await axios(url)
+    .then(site => {
+      const html = site.data;
+      const $ = cheerio.load(html);
+
+      // find the *first* table
+      const table = $('.primary')[0];
+      // firstChild is the <tbody>, get its children
+      const rows = table.firstChild.children;
+
+      let RankTotal;
+      let DisplayName;
+      let DownloadsTotal;
+      let DownloadsYesterday;
+
+      // go trough all rows and grab the data
+      for (let i = 1; i < rows.length; i++) {
+        RankTotal = rows[i].children[0].children[0].data;
+        DisplayName = rows[i].children[1].children[0].data;
+        DownloadsTotal = rows[i].children[2].children[0].data;
+        DownloadsYesterday = rows[i].children[3].children[0].data;
+      
+        // generate json
+        mods.push({
+          "DisplayName": DisplayName,
+          "RankTotal": RankTotal,
+          "DownloadsTotal": DownloadsTotal,
+          "DownloadsYesterday": DownloadsYesterday
+        });
+      }
+    }).catch(console.error);
+
+  return mods;
+}
+
+async function generateImage(mods) {
   Jimp.loadFont("Andy32.fnt")
     .then(font => Jimp.read('card.png')
     .then(card => {
-      return card
-        .print(font, 0, 0, "hey")
-        .write('output.png'); // save
+      card = card.print(font, 0, 0, mods[0].DisplayName).write('output.png');
+      return card;
     })
     .catch(err => console.error(err)))
     .catch(err => console.error(err));
+}
+
+async function uploadImage() {
+  const json = await imgur.uploadFile('output.png');
+  const link = json.link;
+  console.log(link);
+  return link;
 }
 
 //stuff to do on exit
