@@ -23,8 +23,7 @@ async function getData(steamid64) {
     console.log(info);
   
     if (response.status == 200) {
-        document.body.style = "margin: 0px; background: #0e0e0e; height: 100%";
-        const html = `<img -webkit-user-select: none;margin: auto;background-color: hsl(0, 0%, 90%);transition: background-color 300ms; src="${info.url}"></img>`;
+        const html = `${JSON.stringify(info)}`;
         document.body.innerHTML = html;
     }
 }
