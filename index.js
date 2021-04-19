@@ -65,7 +65,9 @@ app.post('/api', async (request, response) => {
       }).catch(console.error);
 
       // send data to frontend
-      response.status(200).send(JSON.stringify(mods));
+      setTimeout(function() {
+        response.status(200).send(JSON.stringify(mods));
+      }, 3000);
 });
 
 async function generateImage(mod) {
@@ -73,12 +75,11 @@ async function generateImage(mod) {
     .then(font => Jimp.read('card.png')
     .then(card => {
       return card
-        .print(font, 0, 0, "amongus")
+        .print(font, 0, 0, "hey")
         .write('output.png'); // save
     })
     .catch(err => console.error(err)))
     .catch(err => console.error(err));
-  
 }
 
 //stuff to do on exit

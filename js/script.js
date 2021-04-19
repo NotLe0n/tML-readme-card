@@ -6,9 +6,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 });
 
-async function getData(modName) {
+async function getData(steamid64) {
     // send mod name to back-end
-    let str = modName // what the user entered into the text field
+    let str = steamid64
     const data = { str }
     const options = {
       method: 'POST',
