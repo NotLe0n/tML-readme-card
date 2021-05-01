@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"image/color"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -43,10 +44,10 @@ var myClient = &http.Client{Timeout: 10 * time.Second}
 
 var mods []Mod
 
-func generateImage(steamId string) error {
+func generateImage(steamId string, img io.Writer) error {
 	getJson("https://tmlapis.thelonelysheep.repl.co/author_api/"+steamId, &mods)
 
-	if err := run(steamId); err != nil {
+	if err := run(steamId, img); err != nil {
 		return err
 	}
 	return nil
@@ -58,7 +59,7 @@ var imageHeight float64
 const margin float64 = 20.0
 const padding float64 = 5.0
 
-func run(steamId string) error {
+func run(steamId string, img io.Writer) error {
 	if steamId == "" {
 		return errors.New("please enter a valid steamid64")
 	}
@@ -105,12 +106,7 @@ func run(steamId string) error {
 		DrawText(dc, strconv.Itoa(mods[i].DownloadsTotal), imageWidth-dowloadsTextWidth-50, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+margin*2+10)
 	}
 
-	// save image as output.png
-	if err := dc.SavePNG("output.png"); err != nil {
-		return err
-	}
-
-	return nil
+	return dc.EncodePNG(img)
 }
 
 func DrawText(dc *gg.Context, s string, x float64, y float64) {
@@ -159,9 +155,9 @@ func getSteamJson(url string, target *steamAcc) error {
 	if err != nil {
 		return err
 	}
-  if len(res.Response.Players) == 0 {
-    return errors.New("please enter a valid steamid64")
-  }
+	if len(res.Response.Players) == 0 {
+		return errors.New("please enter a valid steamid64")
+	}
 	*target = res.Response.Players[0]
 	return nil
 }

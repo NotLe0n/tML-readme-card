@@ -4,10 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
-	"os"
 	"sync"
 )
 
@@ -30,20 +28,13 @@ func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	q := r.URL.Query()
-	err := generateImage(q.Get("steamid64"))
+	w.Header().Set("Content-Type", "image/png")
+	err := generateImage(q.Get("steamid64"), w)
 	if err != nil {
 		log.Println(err.Error())
 		errorJson(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	img, err := os.Open("output.png")
-	if err != nil {
-		log.Println("error opening output.png")
-		errorJson(w, err.Error(), http.StatusInternalServerError)
-	}
-	defer img.Close()
-	w.Header().Set("Content-Type", "image/png")
-	io.Copy(w, img)
 }
 
 func main() {
