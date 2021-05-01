@@ -45,7 +45,7 @@ var myClient = &http.Client{Timeout: 10 * time.Second}
 var mods []Mod
 
 func generateImage(steamId string, img io.Writer) error {
-	getJson("https://tmlapis.thelonelysheep.repl.co/author_api/"+steamId, &mods)
+	getJson("https://tmlapis.repl.co/author_api/"+steamId, &mods)
 
 	if err := run(steamId, img); err != nil {
 		return err
