@@ -22,12 +22,12 @@ var serverHandler *http.ServeMux
 var server http.Server
 
 func generateImageHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Got a request on /")
+  q := r.URL.Query()
+	log.Println("Got a request on /?steamid64=" + q.Get("steamid64"))
 	if r.Method != http.MethodGet {
 		errorJson(w, "Method must be GET", http.StatusBadRequest)
 		return
 	}
-	q := r.URL.Query()
 	w.Header().Set("Content-Type", "image/png")
 	err := generateImage(q.Get("steamid64"), w)
 	if err != nil {
