@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"image/color"
 	"log"
 	"net/http"
@@ -59,6 +60,10 @@ const margin float64 = 20.0
 const padding float64 = 5.0
 
 func run(steamId string) error {
+	if steamId == "" {
+		return errors.New("please enter a steam id")
+	}
+
 	imageWidth = 878.0
 	imageHeight = (35.0+padding)*float64(len(mods)) + (35 * 2) + margin*2 + 10
 	dc := gg.NewContext(int(imageWidth), int(imageHeight))
