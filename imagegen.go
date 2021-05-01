@@ -25,8 +25,8 @@ var myClient = &http.Client{Timeout: 10 * time.Second}
 
 var mods []Mod
 
-func main() {
-	getJson("https://tmlapis.thelonelysheep.repl.co/author_api/76561198278789341", &mods)
+func generateImage(steamId string) {
+	getJson("https://tmlapis.thelonelysheep.repl.co/author_api/"+steamId, &mods)
 	fmt.Printf("mods : %+v", mods)
 
 	if err := run(); err != nil {
