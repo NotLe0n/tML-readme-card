@@ -30,7 +30,7 @@ func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	q := r.URL.Query()
-	err := generateImage(q.Get("steamid"))
+	err := generateImage(q.Get("steamid64"))
 	if err != nil {
 		log.Println(err.Error())
 		errorJson(w, err.Error(), http.StatusInternalServerError)

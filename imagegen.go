@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"image/color"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -61,7 +60,7 @@ const padding float64 = 5.0
 
 func run(steamId string) error {
 	if steamId == "" {
-		return errors.New("please enter a steam id")
+		return errors.New("please enter a valid steamid64")
 	}
 
 	imageWidth = 878.0
@@ -96,7 +95,6 @@ func run(steamId string) error {
 	if err != nil {
 		return err
 	}
-	log.Println(steamjson.Personaname)
 	DrawText(dc, steamjson.Personaname+"'s Stats", imageWidth/3, margin*2+10)
 	for i := 0; i < len(mods); i++ {
 		_, nameTextHeight := dc.MeasureString(mods[i].DisplayName)
@@ -161,6 +159,9 @@ func getSteamJson(url string, target *steamAcc) error {
 	if err != nil {
 		return err
 	}
+  if len(res.Response.Players) == 0 {
+    return errors.New("please enter a valid steamid64")
+  }
 	*target = res.Response.Players[0]
 	return nil
 }
