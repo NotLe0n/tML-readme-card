@@ -1,17 +1,19 @@
 package main
 
 import (
+	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"image/color"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"time"
-  "regexp"
-  "encoding/hex"
 
 	"github.com/fogleman/gg"
 )
@@ -84,54 +86,60 @@ func run(steamId string, img io.Writer) error {
 	dc.DrawRectangle(x, y, w, h)
 	dc.Fill()
 
-  // Load font
+	// Load font
 	fontPath := filepath.Join("fonts", "Andy Bold.ttf")
-	dc.LoadFontFace(fontPath, 35);
+	dc.LoadFontFace(fontPath, 35)
 	var steamjson steamAcc
 
-  // get Author name
+	// get Author name
 	err := getSteamJson("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key="+mySecret+"&steamids="+steamId, &steamjson)
-	if err != nil {  
-		return errors.New("something went wrong")
+	if err != nil {
+		return err
 	}
 
-  // Draw Text
-  userNameWidth, _ := dc.MeasureString(steamjson.Personaname+"'s Stats")
+	// Draw Text
+	userNameWidth, _ := dc.MeasureString(steamjson.Personaname + "'s Stats")
 	DrawText(dc, steamjson.Personaname+"'s Stats", (imageWidth-userNameWidth)/2, margin*2+10, 35, color.White)
 
-  if len(mods) == 0 {
-    DrawText(dc, "No mods found", 30, margin*4+10, 35, color.White)
-  } else {
-    DrawText(dc, "Rank", 30, margin*4+10, 35, color.White)
-    DrawText(dc, "Display Name", 120, margin*4+10, 35, color.White)
-    DrawText(dc, "Downloads", imageWidth-190, margin*4+10, 35, color.White)
+	if len(mods) == 0 {
+		DrawText(dc, "No mods found", 30, margin*4+10, 35, color.White)
+	} else {
+		DrawText(dc, "Rank", 30, margin*4+10, 35, color.White)
+		DrawText(dc, "Display Name", 120, margin*4+10, 35, color.White)
+		DrawText(dc, "Downloads", imageWidth-190, margin*4+10, 35, color.White)
 
-    dc.SetLineWidth(2)
-    dc.DrawLine(30, margin*4+15, imageWidth-30, margin*4+15)
-    dc.Stroke()
+		dc.SetLineWidth(2)
+		dc.DrawLine(30, margin*4+15, imageWidth-30, margin*4+15)
+		dc.Stroke()
 
-    for i := 0; i < len(mods); i++ {
-      _, nameTextHeight := dc.MeasureString(mods[i].DisplayName)
-      dowloadsTextWidth, _ := dc.MeasureString(strconv.Itoa(mods[i].DownloadsTotal))
-      
-      DrawText(dc, strconv.Itoa(mods[i].RankTotal), 30, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+margin*4+10, 35, color.White)
+		for i := 0; i < len(mods); i++ {
+			_, nameTextHeight := dc.MeasureString(mods[i].DisplayName)
+			dowloadsTextWidth, _ := dc.MeasureString(strconv.Itoa(mods[i].DownloadsTotal))
 
-      // NEW: parsing chat tags using regexp
-      displayNameColor, displayName := ParseChatTags(mods[i].DisplayName)
-      DrawText(dc, displayName, 120, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+margin*4+10, 35, displayNameColor)
+			DrawText(dc, strconv.Itoa(mods[i].RankTotal), 30, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+margin*4+10, 35, color.White)
 
-      DrawText(dc, strconv.Itoa(mods[i].DownloadsTotal), imageWidth-dowloadsTextWidth-50, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+margin*4+10, 35, color.White)
-    }
-}
-  DrawText(dc, time.Now().Format("2006-01-02 15:04:05"), imageWidth-160, imageHeight-20, 15, color.White)
+			// NEW: parsing chat tags using regexp
+			displayNameColor, displayName := ParseChatTags(mods[i].DisplayName)
+			DrawText(dc, displayName, 120, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+margin*4+10, 35, displayNameColor)
 
-	return dc.EncodePNG(img)
+			DrawText(dc, strconv.Itoa(mods[i].DownloadsTotal), imageWidth-dowloadsTextWidth-50, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+margin*4+10, 35, color.White)
+		}
+	}
+	DrawText(dc, time.Now().Format("2006-01-02 15:04:05"), imageWidth-160, imageHeight-20, 15, color.White)
+
+	var b []byte
+	err = dc.EncodePNG(bytes.NewBuffer(b))
+	if err != nil {
+		return err
+	}
+	_, err = img.Write(b)
+	return err
 }
 
 func DrawText(dc *gg.Context, s string, x float64, y float64, pnt float64, col color.Color) {
 	// Load font
 	fontPath := filepath.Join("fonts", "Andy Bold.ttf")
-	dc.LoadFontFace(fontPath, pnt);
+	dc.LoadFontFace(fontPath, pnt)
 
 	dc.SetColor(col)
 	textWidth, textHeight := dc.MeasureString(s)
@@ -140,29 +148,29 @@ func DrawText(dc *gg.Context, s string, x float64, y float64, pnt float64, col c
 	dc.DrawString(s, x, y)
 }
 
-func ParseChatTags(str string) (textColor color.Color, text string ){
-  var compRegEx = regexp.MustCompile(`\[c\/(?P<col>\w+):(?P<text>[\s\S]+?)\]`)
+func ParseChatTags(str string) (textColor color.Color, text string) {
+	var compRegEx = regexp.MustCompile(`\[c\/(?P<col>\w+):(?P<text>[\s\S]+?)\]`)
 
-  if compRegEx.MatchString(str) {
-    match := compRegEx.FindStringSubmatch(str)
+	if compRegEx.MatchString(str) {
+		match := compRegEx.FindStringSubmatch(str)
 
-    paramsMap := make(map[string]string)
-    for i, name := range compRegEx.SubexpNames() {
-      if i > 0 && i <= len(match) {
-        paramsMap[name] = match[i]
-      }
-    }
+		paramsMap := make(map[string]string)
+		for i, name := range compRegEx.SubexpNames() {
+			if i > 0 && i <= len(match) {
+				paramsMap[name] = match[i]
+			}
+		}
 
-    b, err := hex.DecodeString(paramsMap["col"])
-    if(err != nil) {
-      
-    }
-    col := color.RGBA{b[0], b[1], b[2], 255}
-    
-    return col, paramsMap["text"]
-  }
-  
-  return color.White, str
+		b, err := hex.DecodeString(paramsMap["col"])
+		if err != nil {
+			log.Println(err) //this should never happen so we don't need to 'throw' the error, but if it happens we know where
+		}
+		col := color.RGBA{b[0], b[1], b[2], 255}
+
+		return col, paramsMap["text"]
+	}
+
+	return color.White, str
 }
 
 func ClampFloat(v float64, min float64, max float64) float64 {

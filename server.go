@@ -22,7 +22,7 @@ var serverHandler *http.ServeMux
 var server http.Server
 
 func generateImageHandler(w http.ResponseWriter, r *http.Request) {
-  q := r.URL.Query()
+	q := r.URL.Query()
 	log.Println("Got a request on /?steamid64=" + q.Get("steamid64"))
 	if r.Method != http.MethodGet {
 		errorJson(w, "Method must be GET", http.StatusBadRequest)
@@ -32,7 +32,7 @@ func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 	err := generateImage(q.Get("steamid64"), w)
 	if err != nil {
 		log.Println(err.Error())
-		errorJson(w, err.Error(), http.StatusInternalServerError)
+		errorJson(w, err.Error(), http.StatusInternalServerError) //if the err happened while writing to w we get an runtime error because we set the w status code twice. should never happen but who knows
 		return
 	}
 }
