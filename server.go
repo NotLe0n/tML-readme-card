@@ -18,24 +18,19 @@ func errorJson(w http.ResponseWriter, msg string, code int) {
 	json.NewEncoder(w).Encode(`{"error":"` + msg + `"}`)
 }
 
-//send a response with a json body constructed from data over w
-func returnJsonFromStruct(w http.ResponseWriter, data interface{}, code int) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(data)
-}
-
 var wg sync.WaitGroup
 
 var serverHandler *http.ServeMux
 var server http.Server
 
 func generateImageHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Got a request on /")
 	if r.Method != http.MethodGet {
 		errorJson(w, "Method must be GET", http.StatusBadRequest)
 		return
 	}
-	generateImage(r.URL.Path[len("/generateImage/"):])
+	q := r.URL.Query()
+	generateImage(q.Get("steamid"))
 	img, err := os.Open("output.png")
 	if err != nil {
 		log.Println("error opening output.png")
@@ -50,7 +45,7 @@ func main() {
 	serverHandler = http.NewServeMux()
 	server = http.Server{Addr: ":3000", Handler: serverHandler}
 
-	serverHandler.HandleFunc("/generateImage/", generateImageHandler)
+	serverHandler.HandleFunc("/", generateImageHandler)
 
 	wg.Add(1)
 	go func() {
@@ -72,8 +67,7 @@ func main() {
 func cmdInterface() {
 	for loop := true; loop; {
 		var inp string
-		_, err := fmt.Scanln(&inp)
-		if err != nil {
+		if _, err := fmt.Scanln(&inp); err != nil {
 			log.Println(err.Error())
 		} else {
 			switch inp {
