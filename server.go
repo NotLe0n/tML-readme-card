@@ -31,11 +31,11 @@ func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	q := r.URL.Query()
 	err := generateImage(q.Get("steamid"))
-  if err != nil {
-    log.Println(err.Error())
-    errorJson(w, err.Error(), http.StatusInternalServerError)
-    return
-  }
+	if err != nil {
+		log.Println(err.Error())
+		errorJson(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	img, err := os.Open("output.png")
 	if err != nil {
 		log.Println("error opening output.png")
