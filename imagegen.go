@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"image/color"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -48,13 +47,9 @@ var myClient = &http.Client{Timeout: 10 * time.Second}
 
 var mods []Mod
 
-func generateImage(steamId string, img io.Writer) error {
+func generateImage(steamId string) ([]byte, error) {
 	getJson("https://tmlapis.repl.co/author_api/"+steamId, &mods)
-
-	if err := run(steamId, img); err != nil {
-		return err
-	}
-	return nil
+	return run(steamId)
 }
 
 var imageWidth float64
@@ -63,9 +58,9 @@ var imageHeight float64
 const margin float64 = 20.0
 const padding float64 = 5.0
 
-func run(steamId string, img io.Writer) error {
+func run(steamId string) ([]byte, error) {
 	if steamId == "" {
-		return errors.New("please enter a valid steamid64")
+		return nil, errors.New("please enter a valid steamid64")
 	}
 
 	imageWidth = 878.0
@@ -94,7 +89,7 @@ func run(steamId string, img io.Writer) error {
 	// get Author name
 	err := getSteamJson("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key="+mySecret+"&steamids="+steamId, &steamjson)
 	if err != nil {
-		return err
+		return nil, errors.New("something went wrong")
 	}
 
 	// Draw Text
@@ -129,11 +124,7 @@ func run(steamId string, img io.Writer) error {
 
 	var b []byte
 	err = dc.EncodePNG(bytes.NewBuffer(b))
-	if err != nil {
-		return err
-	}
-	_, err = img.Write(b)
-	return err
+	return b, err
 }
 
 func DrawText(dc *gg.Context, s string, x float64, y float64, pnt float64, col color.Color) {

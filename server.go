@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"sync"
@@ -29,11 +31,15 @@ func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "image/png")
-	err := generateImage(q.Get("steamid64"), w)
+	img, err := generateImage(q.Get("steamid64"))
 	if err != nil {
 		log.Println(err.Error())
-		errorJson(w, err.Error(), http.StatusInternalServerError) //if the err happened while writing to w we get an runtime error because we set the w status code twice. should never happen but who knows
+		errorJson(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+	_, err = io.Copy(w, bytes.NewReader(img))
+	if err != nil {
+		log.Println(err)
 	}
 }
 
