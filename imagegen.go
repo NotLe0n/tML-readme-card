@@ -2,16 +2,18 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"image/color"
 	"net/http"
 	"os"
+  //"io/ioutil"
+  "log"
 
 	"path/filepath"
 	"strconv"
 	"time"
 
 	"github.com/fogleman/gg"
+
 )
 
 type Mod struct {
@@ -21,17 +23,36 @@ type Mod struct {
 	DownloadsYesterday int
 }
 
+type steamAcc struct {
+  Steamid string
+  Communityvisibilitystate int
+  Profilestate int
+  Personaname string
+  Profileurl string
+  Avatar string
+  Avatarmedium string
+  Avatarfull string
+  Avatarhash string
+  Lastlogoff string
+  Personastate int
+  Primaryclanid string
+  Timecreated int
+  Personastateflags int
+  Loccountrycode string
+}
+
+var mySecret = os.Getenv("steamAPIKey")
 var myClient = &http.Client{Timeout: 10 * time.Second}
 
 var mods []Mod
 
-func generateImage(steamId string) {
+func generateImage(steamId string) error {
 	getJson("https://tmlapis.thelonelysheep.repl.co/author_api/"+steamId, &mods)
-	fmt.Printf("mods : %+v", mods)
 
-	if err := run(); err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
+	if err := run(steamId); err != nil {
+		return err
 	}
+  return nil
 }
 
 var imageWidth float64
@@ -40,7 +61,7 @@ var imageHeight float64
 const margin float64 = 20.0
 const padding float64 = 5.0
 
-func run() error {
+func run(steamId string) error {
 	imageWidth = 878.0
 	imageHeight = (35.0+padding)*float64(len(mods)) + (35 * 2) + margin*2 + 10
 	dc := gg.NewContext(int(imageWidth), int(imageHeight))
@@ -66,7 +87,15 @@ func run() error {
 	dc.Fill()
 
 	// Draw Text
-	DrawText(dc, "NotLe0n's Stats", imageWidth/3, margin*2+10)
+
+  var steamjson steamAcc
+
+  err := getJson("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key="+mySecret+"&steamids="+steamId, &steamjson)
+  if err != nil {
+    return err
+  }
+  log.Println(steamjson.Personaname)
+	DrawText(dc, steamjson.Personaname +"'s Stats", imageWidth/3, margin*2+10)
 	for i := 0; i < len(mods); i++ {
 		_, nameTextHeight := dc.MeasureString(mods[i].DisplayName)
 		dowloadsTextWidth, _ := dc.MeasureString(strconv.Itoa(mods[i].DownloadsTotal))
@@ -103,11 +132,12 @@ func ClampFloat(v float64, min float64, max float64) float64 {
 }
 
 func getJson(url string, target interface{}) error {
+  log.Println(url)
 	r, err := myClient.Get(url)
 	if err != nil {
 		return err
 	}
 	defer r.Body.Close()
 
-	return json.NewDecoder(r.Body).Decode(target)
+	return json.NewDecoder(r.Body).Decode(&target)
 }
