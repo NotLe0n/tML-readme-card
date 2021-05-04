@@ -8,7 +8,6 @@ import (
 	"image/color"
 	"log"
 	"net/http"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -24,31 +23,17 @@ type Mod struct {
 	DownloadsYesterday int
 }
 
-type steamAcc struct {
-	Steamid                  string
-	Communityvisibilitystate int
-	Profilestate             int
-	Personaname              string
-	Profileurl               string
-	Avatar                   string
-	Avatarmedium             string
-	Avatarfull               string
-	Avatarhash               string
-	Lastlogoff               int
-	Personastate             int
-	Primaryclanid            string
-	Timecreated              int
-	Personastateflags        int
-	Loccountrycode           string
+type Author struct {
+	SteamName string
+	Mods      []Mod
 }
 
-var mySecret = os.Getenv("steamAPIKey")
 var myClient = &http.Client{Timeout: 10 * time.Second}
 
-var mods []Mod
+var author Author
 
 func generateImage(steamId string) ([]byte, error) {
-	getJson("https://tmlapis.repl.co/author_api/"+steamId, &mods)
+	getJson("https://tmlapis.repl.co/author_api/"+steamId, &author)
 	return run(steamId)
 }
 
@@ -64,7 +49,7 @@ func run(steamId string) ([]byte, error) {
 	}
 
 	imageWidth = 878.0
-	imageHeight = (35.0+padding)*float64(len(mods)) + (35 * 2) + margin*2 + 10
+	imageHeight = (35.0+padding)*float64(len(author.Mods)) + (35 * 2) + margin*2 + 10
 	dc := gg.NewContext(int(imageWidth), int(imageHeight))
 
 	// Draw light gray rounded rectangle
@@ -84,19 +69,12 @@ func run(steamId string) ([]byte, error) {
 	// Load font
 	fontPath := filepath.Join("fonts", "Andy Bold.ttf")
 	dc.LoadFontFace(fontPath, 35)
-	var steamjson steamAcc
-
-	// get Author name
-	err := getSteamJson("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/?key="+mySecret+"&steamids="+steamId, &steamjson)
-	if err != nil {
-		return nil, errors.New("something went wrong, check if the steamid64 is valid")
-	}
 
 	// Draw Text
-	userNameWidth, _ := dc.MeasureString(steamjson.Personaname + "'s Stats")
-	DrawText(dc, steamjson.Personaname+"'s Stats", (imageWidth-userNameWidth)/2, margin*2+10, 35, color.White)
+	userNameWidth, _ := dc.MeasureString(author.SteamName + "'s Stats")
+	DrawText(dc, author.SteamName+"'s Stats", (imageWidth-userNameWidth)/2, margin*2+10, 35, color.White)
 
-	if len(mods) == 0 {
+	if len(author.Mods) == 0 {
 		DrawText(dc, "No mods found", 30, margin*4+10, 35, color.White)
 	} else {
 		DrawText(dc, "Rank", 30, margin*4+10, 35, color.White)
@@ -107,23 +85,23 @@ func run(steamId string) ([]byte, error) {
 		dc.DrawLine(30, margin*4+15, imageWidth-30, margin*4+15)
 		dc.Stroke()
 
-		for i := 0; i < len(mods); i++ {
-			_, nameTextHeight := dc.MeasureString(mods[i].DisplayName)
-			dowloadsTextWidth, _ := dc.MeasureString(strconv.Itoa(mods[i].DownloadsTotal))
+		for i := 0; i < len(author.Mods); i++ {
+			_, nameTextHeight := dc.MeasureString(author.Mods[i].DisplayName)
+			dowloadsTextWidth, _ := dc.MeasureString(strconv.Itoa(author.Mods[i].DownloadsTotal))
 
-			DrawText(dc, strconv.Itoa(mods[i].RankTotal), 30, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+margin*4+10, 35, color.White)
+			DrawText(dc, strconv.Itoa(author.Mods[i].RankTotal), 30, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+margin*4+10, 35, color.White)
 
 			// NEW: parsing chat tags using regexp
-			displayNameColor, displayName := ParseChatTags(mods[i].DisplayName)
+			displayNameColor, displayName := ParseChatTags(author.Mods[i].DisplayName)
 			DrawText(dc, displayName, 120, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+margin*4+10, 35, displayNameColor)
 
-			DrawText(dc, strconv.Itoa(mods[i].DownloadsTotal), imageWidth-dowloadsTextWidth-50, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+margin*4+10, 35, color.White)
+			DrawText(dc, strconv.Itoa(author.Mods[i].DownloadsTotal), imageWidth-dowloadsTextWidth-50, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+margin*4+10, 35, color.White)
 		}
 	}
 	DrawText(dc, time.Now().Format("2006-01-02 15:04:05"), imageWidth-160, imageHeight-20, 15, color.White)
 
 	var b bytes.Buffer
-	err = dc.EncodePNG(&b)
+	err := dc.EncodePNG(&b)
 	if err != nil {
 		return nil, err
 	}
@@ -185,29 +163,4 @@ func getJson(url string, target interface{}) error {
 	defer r.Body.Close()
 
 	return json.NewDecoder(r.Body).Decode(&target)
-}
-
-func getSteamJson(url string, target *steamAcc) error {
-	r, err := myClient.Get(url)
-	if err != nil {
-		return err
-	}
-	defer r.Body.Close()
-
-	type resp struct {
-		Response struct {
-			Players []steamAcc
-		}
-	}
-
-	var res resp
-	err = json.NewDecoder(r.Body).Decode(&res)
-	if err != nil {
-		return err
-	}
-	if len(res.Response.Players) == 0 {
-		return errors.New("please enter a valid steamid64")
-	}
-	*target = res.Response.Players[0]
-	return nil
 }
