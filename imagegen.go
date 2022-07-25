@@ -32,73 +32,73 @@ var myClient = &http.Client{Timeout: 10 * time.Second}
 
 var author Author
 
-func generateImage(steamId string) ([]byte, error) {
+func generateImage(steamId string, config ImgConfig) ([]byte, error) {
 	getJson("https://tmlapis.repl.co/author_api/"+steamId, &author)
-	return run(steamId)
+	return run(steamId, config)
 }
 
 var imageWidth float64
 var imageHeight float64
 
-const margin float64 = 20.0
 const padding float64 = 5.0
 
-func run(steamId string) ([]byte, error) {
+func run(steamId string, config ImgConfig) ([]byte, error) {
 	if steamId == "" {
 		return nil, errors.New("please enter a valid steamid64")
 	}
 
+	bw := float64(config.borderWidth) // stands for border width
 	imageWidth = 878.0
-	imageHeight = (35.0+padding)*float64(len(author.Mods)) + (35 * 2) + margin*2 + 10
+	imageHeight = (35.0+padding)*float64(len(author.Mods)) + (35 * 2) + bw*2 + 10
 	dc := gg.NewContext(int(imageWidth), int(imageHeight))
 
 	// Draw light gray rounded rectangle
-	dc.SetColor(color.RGBA{35, 39, 42, 255})
-	dc.DrawRoundedRectangle(0, 0, imageWidth, imageHeight, 15)
+	dc.SetColor(config.borderColor)
+	dc.DrawRoundedRectangle(0, 0, imageWidth, imageHeight, float64(config.cornerRadius))
 	dc.Fill()
 
 	// Draw dark gray rectangle and leave 20px border
-	x := margin
-	y := margin
-	w := float64(imageWidth) - (2.0 * margin)
-	h := float64(imageHeight) - (2.0 * margin)
-	dc.SetColor(color.RGBA{25, 28, 30, 255})
-	dc.DrawRectangle(x, y, w, h)
+	w := float64(imageWidth) - (2.0 * bw)
+	h := float64(imageHeight) - (2.0 * bw)
+	dc.SetColor(config.bgColor)
+	dc.DrawRoundedRectangle(bw, bw, w, h, float64(config.cornerRadius))
 	dc.Fill()
 
 	// Load font
 	fontPath := filepath.Join("fonts", "Andy Bold.ttf")
-	dc.LoadFontFace(fontPath, 35)
+	fontSize := 35.0
+	dc.LoadFontFace(fontPath, fontSize)
 
 	// Draw Text
-	userNameWidth, _ := dc.MeasureString(author.SteamName + "'s Stats")
-	DrawText(dc, author.SteamName+"'s Stats", (imageWidth-userNameWidth)/2, margin*2+10, 35, color.White)
+	userNameWidth, userNameHeight := dc.MeasureString(author.SteamName + "'s Stats")
+	DrawText(dc, author.SteamName+"'s Stats", (imageWidth-userNameWidth)/2, bw+35, fontSize, config.textColor)
 
+	headerY := userNameHeight + 20 + bw*2
 	if len(author.Mods) == 0 {
-		DrawText(dc, "No mods found", 30, margin*4+10, 35, color.White)
+		DrawText(dc, "No mods found", 30, headerY, fontSize, config.textColor)
 	} else {
-		DrawText(dc, "Rank", 30, margin*4+10, 35, color.White)
-		DrawText(dc, "Display Name", 120, margin*4+10, 35, color.White)
-		DrawText(dc, "Downloads", imageWidth-190, margin*4+10, 35, color.White)
+		DrawText(dc, "Rank", 30, headerY, fontSize, config.textColor)
+		DrawText(dc, "Display Name", 120, headerY, fontSize, config.textColor)
+		DrawText(dc, "Downloads", imageWidth-190, headerY, fontSize, config.textColor)
 
 		dc.SetLineWidth(2)
-		dc.DrawLine(30, margin*4+15, imageWidth-30, margin*4+15)
+		dc.DrawLine(30, headerY, imageWidth-30, headerY)
 		dc.Stroke()
 
 		for i := 0; i < len(author.Mods); i++ {
 			_, nameTextHeight := dc.MeasureString(author.Mods[i].DisplayName)
 			dowloadsTextWidth, _ := dc.MeasureString(strconv.Itoa(author.Mods[i].DownloadsTotal))
 
-			DrawText(dc, strconv.Itoa(author.Mods[i].RankTotal), 30, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+margin*4+10, 35, color.White)
+			DrawText(dc, strconv.Itoa(author.Mods[i].RankTotal), 30, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+headerY, fontSize, config.textColor)
 
 			// NEW: parsing chat tags using regexp
-			displayNameColor, displayName := ParseChatTags(author.Mods[i].DisplayName)
-			DrawText(dc, displayName, 120, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+margin*4+10, 35, displayNameColor)
+			displayNameColor, displayName := ParseChatTags(author.Mods[i].DisplayName, config.textColor)
+			DrawText(dc, displayName, 120, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+headerY, fontSize, displayNameColor)
 
-			DrawText(dc, strconv.Itoa(author.Mods[i].DownloadsTotal), imageWidth-dowloadsTextWidth-50, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+margin*4+10, 35, color.White)
+			DrawText(dc, strconv.Itoa(author.Mods[i].DownloadsTotal), imageWidth-dowloadsTextWidth-50, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+headerY, fontSize, config.textColor)
 		}
 	}
-	DrawText(dc, time.Now().Format("2006-01-02 15:04:05"), imageWidth-160, imageHeight-20, 15, color.White)
+	DrawText(dc, time.Now().Format("2006-01-02 15:04:05"), imageWidth-160, imageHeight-20, 15, config.textColor)
 
 	var b bytes.Buffer
 	err := dc.EncodePNG(&b)
@@ -120,7 +120,7 @@ func DrawText(dc *gg.Context, s string, x float64, y float64, pnt float64, col c
 	dc.DrawString(s, x, y)
 }
 
-func ParseChatTags(str string) (textColor color.Color, text string) {
+func ParseChatTags(str string, defaultColor color.Color) (textColor color.Color, text string) {
 	var compRegEx = regexp.MustCompile(`\[c\/(?P<col>\w+):(?P<text>[\s\S]+?)\]`)
 
 	if compRegEx.MatchString(str) {
@@ -142,7 +142,7 @@ func ParseChatTags(str string) (textColor color.Color, text string) {
 		return col, paramsMap["text"]
 	}
 
-	return color.White, str
+	return defaultColor, str
 }
 
 func ClampFloat(v float64, min float64, max float64) float64 {

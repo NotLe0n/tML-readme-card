@@ -5,10 +5,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"image/color"
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"sync"
+
+	"github.com/g4s8/hexcolor"
 )
 
 //write an json error to w
@@ -23,20 +27,64 @@ var wg sync.WaitGroup
 var serverHandler *http.ServeMux
 var server http.Server
 
+type ImgConfig struct {
+	textColor    color.Color
+	bgColor      color.Color
+	borderColor  color.Color
+	borderWidth  uint64
+	cornerRadius uint64
+}
+
 func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
-	log.Println("Got a request on /?steamid64=" + q.Get("steamid64"))
+	log.Println("Got a request: " + r.URL.RawQuery)
+
 	if r.Method != http.MethodGet {
 		errorJson(w, "Method must be GET", http.StatusBadRequest)
 		return
 	}
 	w.Header().Set("Content-Type", "image/png")
-	img, err := generateImage(q.Get("steamid64"))
+
+	textColor, err := hexcolor.Parse("#" + q.Get("text_color"))
+	if err != nil {
+		textColor = color.RGBA{255, 255, 255, 255} // white
+	}
+
+	bgColor, err := hexcolor.Parse("#" + q.Get("bg_color"))
+	if err != nil {
+		bgColor = color.RGBA{35, 39, 42, 255} // light gray
+	}
+
+	borderColor, err := hexcolor.Parse("#" + q.Get("border_color"))
+	if err != nil {
+		borderColor = color.RGBA{25, 28, 30, 255} // dark gray
+	}
+
+	borderWidth, err := strconv.ParseUint(q.Get("border_width"), 10, 32)
+	if err != nil {
+		borderWidth = 20
+	}
+
+	cornerRadius, err := strconv.ParseUint(q.Get("corner_radius"), 10, 32)
+	if err != nil {
+		cornerRadius = 15
+	}
+
+	config := ImgConfig{
+		textColor:    textColor,
+		bgColor:      bgColor,
+		borderColor:  borderColor,
+		borderWidth:  borderWidth,
+		cornerRadius: cornerRadius,
+	}
+
+	img, err := generateImage(q.Get("steamid64"), config)
 	if err != nil {
 		log.Println(err.Error())
 		errorJson(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	io.Copy(w, bytes.NewReader(img))
 }
 
