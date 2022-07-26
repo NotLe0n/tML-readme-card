@@ -52,17 +52,17 @@ func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 
 	bgColor, err := hexcolor.Parse("#" + q.Get("bg_color"))
 	if err != nil {
-		bgColor = color.RGBA{35, 39, 42, 255} // light gray
+		bgColor = color.RGBA{25, 28, 30, 255} // dark gray
 	}
 
 	borderColor, err := hexcolor.Parse("#" + q.Get("border_color"))
 	if err != nil {
-		borderColor = color.RGBA{25, 28, 30, 255} // dark gray
+		borderColor = color.RGBA{35, 39, 42, 255} // light gray
 	}
 
 	borderWidth, err := strconv.ParseUint(q.Get("border_width"), 10, 32)
 	if err != nil {
-		borderWidth = 20
+		borderWidth = 4
 	}
 
 	cornerRadius, err := strconv.ParseUint(q.Get("corner_radius"), 10, 32)
