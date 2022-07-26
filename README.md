@@ -17,7 +17,7 @@ Mod names with color chat tags will have their color changed.
 
 ## Examples
 * `https://dynamictmlstats.repl.co/?steamid64=76561198278789341`
-![example-widget](https://dynamictmlstats.repl.co/?steamid64=76561198278789341)
+![example-widget](https://dynamictmlstats.repl.co/?steamid64=76561198278789341&)
 
 * `https://dynamictmlstats.repl.co/?steamid64=76561198278789341&border_width=1&corner_radius=60&border_color=FFFFFF&bg_color=0D1116`
-![example-widget-parameters](https://dynamictmlstats.repl.co/?steamid64=76561198278789341&border_width=1&corner_radius=60&border_color=FFFFFF&bg_color=0D1116)
+![example-widget-parameters](https://dynamictmlstats.repl.co/?steamid64=76561198278789341&border_width=1&corner_radius=60&border_color=FFFFFF&bg_color=0D1116&)
