@@ -7,6 +7,7 @@ import (
 	"errors"
 	"image/color"
 	"log"
+	"math"
 	"net/http"
 	"path/filepath"
 	"regexp"
@@ -49,15 +50,16 @@ func run(steamId string, config ImgConfig) ([]byte, error) {
 
 	bw := float64(config.borderWidth) // stands for border width
 	imageWidth = 878.0
-	imageHeight = (35.0+padding)*float64(len(author.Mods)) + (35 * 2) + bw*2 + 10
-	dc := gg.NewContext(int(imageWidth), int(imageHeight))
+	modListHeight := (32 + padding) * math.Max(float64(len(author.Mods)), 2)
+	imageHeight = 26.25 + 40 + bw*2 + modListHeight + 10
+	dc := gg.NewContext(int(imageWidth), int(imageHeight)) // draw context
 
-	// Draw light gray rounded rectangle
+	// Draw border
 	dc.SetColor(config.borderColor)
 	dc.DrawRoundedRectangle(0, 0, imageWidth, imageHeight, float64(config.cornerRadius))
 	dc.Fill()
 
-	// Draw dark gray rectangle and leave 20px border
+	// Draw background
 	w := float64(imageWidth) - (2.0 * bw)
 	h := float64(imageHeight) - (2.0 * bw)
 	dc.SetColor(config.bgColor)
@@ -73,32 +75,36 @@ func run(steamId string, config ImgConfig) ([]byte, error) {
 	userNameWidth, userNameHeight := dc.MeasureString(author.SteamName + "'s Stats")
 	DrawText(dc, author.SteamName+"'s Stats", (imageWidth-userNameWidth)/2, bw+35, fontSize, config.textColor)
 
-	headerY := userNameHeight + 20 + bw*2
+	headerY := userNameHeight + 40 + bw*2
 	if len(author.Mods) == 0 {
-		DrawText(dc, "No mods found", 30, headerY, fontSize, config.textColor)
+		DrawText(dc, "No mods found", 30, headerY+fontSize/2, fontSize, config.textColor)
 	} else {
+		// Draw header
 		DrawText(dc, "Rank", 30, headerY, fontSize, config.textColor)
 		DrawText(dc, "Display Name", 120, headerY, fontSize, config.textColor)
 		DrawText(dc, "Downloads", imageWidth-190, headerY, fontSize, config.textColor)
 
+		// Draw line
 		dc.SetLineWidth(2)
-		dc.DrawLine(30, headerY, imageWidth-30, headerY)
+		dc.DrawLine(30, headerY+5, imageWidth-30, headerY+5)
 		dc.Stroke()
 
 		for i := 0; i < len(author.Mods); i++ {
 			_, nameTextHeight := dc.MeasureString(author.Mods[i].DisplayName)
 			dowloadsTextWidth, _ := dc.MeasureString(strconv.Itoa(author.Mods[i].DownloadsTotal))
 
-			DrawText(dc, strconv.Itoa(author.Mods[i].RankTotal), 30, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+headerY, fontSize, config.textColor)
+			modY := (nameTextHeight+padding)*float64(i) + (nameTextHeight * 2)
+			// Draw Rank
+			DrawText(dc, strconv.Itoa(author.Mods[i].RankTotal), 30, modY+headerY, fontSize, config.textColor)
 
-			// NEW: parsing chat tags using regexp
+			// Draw Display Name
 			displayNameColor, displayName := ParseChatTags(author.Mods[i].DisplayName, config.textColor)
-			DrawText(dc, displayName, 120, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+headerY, fontSize, displayNameColor)
+			DrawText(dc, displayName, 120, modY+headerY, fontSize, displayNameColor)
 
-			DrawText(dc, strconv.Itoa(author.Mods[i].DownloadsTotal), imageWidth-dowloadsTextWidth-50, (nameTextHeight+padding)*float64(i)+(nameTextHeight*2)+headerY, fontSize, config.textColor)
+			// Draw downloads
+			DrawText(dc, strconv.Itoa(author.Mods[i].DownloadsTotal), imageWidth-dowloadsTextWidth-50, modY+headerY, fontSize, config.textColor)
 		}
 	}
-	DrawText(dc, time.Now().Format("2006-01-02 15:04:05"), imageWidth-160, imageHeight-20, 15, config.textColor)
 
 	var b bytes.Buffer
 	err := dc.EncodePNG(&b)
