@@ -45,8 +45,7 @@ func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "image/png")
 	w.Header().Set("Pragma", "no-cache")
-	w.Header().Set("Expires", "0")
-	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate, max-age=86400")
 
 	textColor, err := hexcolor.Parse("#" + q.Get("text_color"))
 	if err != nil {
