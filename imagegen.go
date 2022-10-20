@@ -18,15 +18,16 @@ import (
 )
 
 type Mod struct {
-	DisplayName        string
-	RankTotal          int
-	DownloadsTotal     int
-	DownloadsYesterday int
+	Rank                int
+	Name                string
+	Downloads           int
+	Downloads_yesterday int
 }
 
 type Author struct {
-	SteamName string
-	Mods      []Mod
+	Total      string
+	Mods       []Mod
+	Steam_name string
 }
 
 var myClient = &http.Client{Timeout: 10 * time.Second}
@@ -34,8 +35,12 @@ var myClient = &http.Client{Timeout: 10 * time.Second}
 var author Author
 
 func generateImage(steamId string, config ImgConfig) ([]byte, error) {
-	getJson("https://tmlapis.repl.co/author_api/"+steamId, &author)
-	return run(steamId, config)
+	if steamId == "" {
+		return nil, errors.New("please enter a valid steamid64")
+	}
+
+	getJson("https://tmlapis.repl.co/"+config.version+"/author/"+steamId, &author)
+	return run(config)
 }
 
 var imageWidth float64
@@ -43,10 +48,7 @@ var imageHeight float64
 
 const padding float64 = 5.0
 
-func run(steamId string, config ImgConfig) ([]byte, error) {
-	if steamId == "" {
-		return nil, errors.New("please enter a valid steamid64")
-	}
+func run(config ImgConfig) ([]byte, error) {
 
 	bw := float64(config.borderWidth) // stands for border width
 	imageWidth = 878.0
@@ -72,8 +74,8 @@ func run(steamId string, config ImgConfig) ([]byte, error) {
 	dc.LoadFontFace(fontPath, fontSize)
 
 	// Draw Text
-	userNameWidth, userNameHeight := dc.MeasureString(author.SteamName + "'s Stats")
-	DrawText(dc, author.SteamName+"'s Stats", (imageWidth-userNameWidth)/2, bw+35, fontSize, config.textColor)
+	userNameWidth, userNameHeight := dc.MeasureString(author.Steam_name + "'s Stats")
+	DrawText(dc, author.Steam_name+"'s Stats", (imageWidth-userNameWidth)/2, bw+35, fontSize, config.textColor)
 
 	headerY := userNameHeight + 40 + bw*2
 	if len(author.Mods) == 0 {
@@ -90,19 +92,19 @@ func run(steamId string, config ImgConfig) ([]byte, error) {
 		dc.Stroke()
 
 		for i := 0; i < len(author.Mods); i++ {
-			_, nameTextHeight := dc.MeasureString(author.Mods[i].DisplayName)
-			dowloadsTextWidth, _ := dc.MeasureString(strconv.Itoa(author.Mods[i].DownloadsTotal))
+			_, nameTextHeight := dc.MeasureString(author.Mods[i].Name)
+			dowloadsTextWidth, _ := dc.MeasureString(strconv.Itoa(author.Mods[i].Downloads))
 
 			modY := (nameTextHeight+padding)*float64(i) + (nameTextHeight * 2)
 			// Draw Rank
-			DrawText(dc, strconv.Itoa(author.Mods[i].RankTotal), 30, modY+headerY, fontSize, config.textColor)
+			DrawText(dc, strconv.Itoa(author.Mods[i].Rank), 30, modY+headerY, fontSize, config.textColor)
 
 			// Draw Display Name
-			displayNameColor, displayName := ParseChatTags(author.Mods[i].DisplayName, config.textColor)
+			displayNameColor, displayName := ParseChatTags(author.Mods[i].Name, config.textColor)
 			DrawText(dc, displayName, 120, modY+headerY, fontSize, displayNameColor)
 
 			// Draw downloads
-			DrawText(dc, strconv.Itoa(author.Mods[i].DownloadsTotal), imageWidth-dowloadsTextWidth-50, modY+headerY, fontSize, config.textColor)
+			DrawText(dc, strconv.Itoa(author.Mods[i].Downloads), imageWidth-dowloadsTextWidth-50, modY+headerY, fontSize, config.textColor)
 		}
 	}
 

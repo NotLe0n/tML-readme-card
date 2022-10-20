@@ -33,6 +33,7 @@ type ImgConfig struct {
 	borderColor  color.Color
 	borderWidth  uint64
 	cornerRadius uint64
+	version      string
 }
 
 func generateImageHandler(w http.ResponseWriter, r *http.Request) {
@@ -72,12 +73,18 @@ func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 		cornerRadius = 15
 	}
 
+	version := q.Get("v")
+	if version == "" || (version != "1.4" && version != "1.3") {
+		version = "1.3"
+	}
+
 	config := ImgConfig{
 		textColor:    textColor,
 		bgColor:      bgColor,
 		borderColor:  borderColor,
 		borderWidth:  borderWidth,
 		cornerRadius: cornerRadius,
+		version:      version,
 	}
 
 	img, err := generateImage(q.Get("steamid64"), config)
