@@ -15,7 +15,7 @@ import (
 	"github.com/g4s8/hexcolor"
 )
 
-//write an json error to w
+// write an json error to w
 func errorJson(w http.ResponseWriter, msg string, code int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
@@ -50,17 +50,17 @@ func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 
 	textColor, err := hexcolor.Parse("#" + q.Get("text_color"))
 	if err != nil {
-		textColor = color.RGBA{255, 255, 255, 255} // white
+		textColor = color.RGBA{R: 255, G: 255, B: 255, A: 255} // white
 	}
 
 	bgColor, err := hexcolor.Parse("#" + q.Get("bg_color"))
 	if err != nil {
-		bgColor = color.RGBA{25, 28, 30, 255} // dark gray
+		bgColor = color.RGBA{R: 25, G: 28, B: 30, A: 255} // dark gray
 	}
 
 	borderColor, err := hexcolor.Parse("#" + q.Get("border_color"))
 	if err != nil {
-		borderColor = color.RGBA{35, 39, 42, 255} // light gray
+		borderColor = color.RGBA{R: 35, G: 39, B: 42, A: 255} // light gray
 	}
 
 	borderWidth, err := strconv.ParseUint(q.Get("border_width"), 10, 32)

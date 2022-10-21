@@ -19,13 +19,13 @@ import (
 
 type Mod struct {
 	Rank                int
-	Name                string
-	Downloads           int
+	Display_name        string
+	Downloads_total     int
 	Downloads_yesterday int
 }
 
 type Author struct {
-	Total      string
+	Total      uint32
 	Mods       []Mod
 	Steam_name string
 }
@@ -39,7 +39,10 @@ func generateImage(steamId string, config ImgConfig) ([]byte, error) {
 		return nil, errors.New("please enter a valid steamid64")
 	}
 
-	getJson("https://tmlapis.repl.co/"+config.version+"/author/"+steamId, &author)
+	if err := getJson("https://tmlapis.repl.co/"+config.version+"/author/"+steamId, &author); err != nil {
+		return nil, err
+	}
+
 	return run(config)
 }
 
@@ -62,8 +65,8 @@ func run(config ImgConfig) ([]byte, error) {
 	dc.Fill()
 
 	// Draw background
-	w := float64(imageWidth) - (2.0 * bw)
-	h := float64(imageHeight) - (2.0 * bw)
+	w := imageWidth - (2.0 * bw)
+	h := imageHeight - (2.0 * bw)
 	dc.SetColor(config.bgColor)
 	dc.DrawRoundedRectangle(bw, bw, w, h, float64(config.cornerRadius))
 	dc.Fill()
@@ -71,7 +74,10 @@ func run(config ImgConfig) ([]byte, error) {
 	// Load font
 	fontPath := filepath.Join("fonts", "Andy Bold.ttf")
 	fontSize := 35.0
-	dc.LoadFontFace(fontPath, fontSize)
+	fontErr := dc.LoadFontFace(fontPath, fontSize)
+	if fontErr != nil {
+		return nil, fontErr
+	}
 
 	// Draw Text
 	userNameWidth, userNameHeight := dc.MeasureString(author.Steam_name + "'s Stats")
@@ -92,19 +98,19 @@ func run(config ImgConfig) ([]byte, error) {
 		dc.Stroke()
 
 		for i := 0; i < len(author.Mods); i++ {
-			_, nameTextHeight := dc.MeasureString(author.Mods[i].Name)
-			dowloadsTextWidth, _ := dc.MeasureString(strconv.Itoa(author.Mods[i].Downloads))
+			_, nameTextHeight := dc.MeasureString(author.Mods[i].Display_name)
+			dowloadsTextWidth, _ := dc.MeasureString(strconv.Itoa(author.Mods[i].Downloads_total))
 
 			modY := (nameTextHeight+padding)*float64(i) + (nameTextHeight * 2)
 			// Draw Rank
 			DrawText(dc, strconv.Itoa(author.Mods[i].Rank), 30, modY+headerY, fontSize, config.textColor)
 
 			// Draw Display Name
-			displayNameColor, displayName := ParseChatTags(author.Mods[i].Name, config.textColor)
+			displayNameColor, displayName := ParseChatTags(author.Mods[i].Display_name, config.textColor)
 			DrawText(dc, displayName, 120, modY+headerY, fontSize, displayNameColor)
 
 			// Draw downloads
-			DrawText(dc, strconv.Itoa(author.Mods[i].Downloads), imageWidth-dowloadsTextWidth-50, modY+headerY, fontSize, config.textColor)
+			DrawText(dc, strconv.Itoa(author.Mods[i].Downloads_total), imageWidth-dowloadsTextWidth-50, modY+headerY, fontSize, config.textColor)
 		}
 	}
 
@@ -119,7 +125,10 @@ func run(config ImgConfig) ([]byte, error) {
 func DrawText(dc *gg.Context, s string, x float64, y float64, pnt float64, col color.Color) {
 	// Load font
 	fontPath := filepath.Join("fonts", "Andy Bold.ttf")
-	dc.LoadFontFace(fontPath, pnt)
+	err := dc.LoadFontFace(fontPath, pnt)
+	if err != nil {
+		return
+	}
 
 	dc.SetColor(col)
 	textWidth, textHeight := dc.MeasureString(s)
@@ -129,7 +138,7 @@ func DrawText(dc *gg.Context, s string, x float64, y float64, pnt float64, col c
 }
 
 func ParseChatTags(str string, defaultColor color.Color) (textColor color.Color, text string) {
-	var compRegEx = regexp.MustCompile(`\[c\/(?P<col>\w+):(?P<text>[\s\S]+?)\]`)
+	var compRegEx = regexp.MustCompile(`\[c/(?P<col>\w+):(?P<text>[\s\S]+?)]`)
 
 	if compRegEx.MatchString(str) {
 		match := compRegEx.FindStringSubmatch(str)
@@ -143,9 +152,9 @@ func ParseChatTags(str string, defaultColor color.Color) (textColor color.Color,
 
 		b, err := hex.DecodeString(paramsMap["col"])
 		if err != nil {
-			log.Println(err) //this should never happen so we don't need to 'throw' the error, but if it happens we know where
+			log.Println(err) //this should never happen, so we don't need to 'throw' the error, but if it happens we know where
 		}
-		col := color.RGBA{b[0], b[1], b[2], 255}
+		col := color.RGBA{R: b[0], G: b[1], B: b[2], A: 255}
 
 		return col, paramsMap["text"]
 	}
