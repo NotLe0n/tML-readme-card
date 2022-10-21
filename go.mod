@@ -1,4 +1,4 @@
-module github.com/NotLe0n/DynamicTMLStats
+module github.com/NotLe0n/tML-readme-card
 
 go 1.16
 
