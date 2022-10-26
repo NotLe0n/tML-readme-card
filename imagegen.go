@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"time"
 
@@ -30,7 +31,7 @@ type Author struct {
 	Steam_name string
 }
 
-var myClient = &http.Client{Timeout: 10 * time.Second}
+var myClient = &http.Client{Timeout: 20 * time.Second}
 
 var author Author
 
@@ -39,7 +40,7 @@ func generateImage(steamId string, config ImgConfig) ([]byte, error) {
 		return nil, errors.New("please enter a valid steamid64")
 	}
 
-	if err := getJson("https://tmlapis.repl.co/"+config.version+"/author/"+steamId, &author); err != nil {
+	if err := getJson("https://tmlapis.tomat.dev/"+config.version+"/author/"+steamId, &author); err != nil {
 		return nil, err
 	}
 
@@ -71,8 +72,14 @@ func run(config ImgConfig) ([]byte, error) {
 	dc.DrawRoundedRectangle(bw, bw, w, h, float64(config.cornerRadius))
 	dc.Fill()
 
+	fontPath := ""
 	// Load font
-	fontPath := filepath.Join("fonts", "Andy Bold.ttf")
+	switch config.font {
+	case "Andy":
+		fontPath = filepath.Join("fonts", "Andy Bold.ttf")
+	case "Sans":
+		fontPath = filepath.Join("fonts", "FreeSans.ttf")
+	}
 	fontSize := 35.0
 	fontErr := dc.LoadFontFace(fontPath, fontSize)
 	if fontErr != nil {
@@ -96,6 +103,10 @@ func run(config ImgConfig) ([]byte, error) {
 		dc.SetLineWidth(2)
 		dc.DrawLine(30, headerY+5, imageWidth-30, headerY+5)
 		dc.Stroke()
+
+		sort.Slice(author.Mods, func(i, j int) bool {
+			return author.Mods[i].Downloads_total > author.Mods[j].Downloads_total
+		})
 
 		for i := 0; i < len(author.Mods); i++ {
 			_, nameTextHeight := dc.MeasureString(author.Mods[i].Display_name)
@@ -123,13 +134,6 @@ func run(config ImgConfig) ([]byte, error) {
 }
 
 func DrawText(dc *gg.Context, s string, x float64, y float64, pnt float64, col color.Color) {
-	// Load font
-	fontPath := filepath.Join("fonts", "Andy Bold.ttf")
-	err := dc.LoadFontFace(fontPath, pnt)
-	if err != nil {
-		return
-	}
-
 	dc.SetColor(col)
 	textWidth, textHeight := dc.MeasureString(s)
 	x = ClampFloat(x, 0, imageWidth-textWidth)

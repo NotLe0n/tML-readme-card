@@ -34,6 +34,7 @@ type ImgConfig struct {
 	borderWidth  uint64
 	cornerRadius uint64
 	version      string
+	font         string
 }
 
 func generateImageHandler(w http.ResponseWriter, r *http.Request) {
@@ -73,9 +74,14 @@ func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 		cornerRadius = 15
 	}
 
+	font := q.Get("font")
+	if font == "" || (font != "Andy" && font != "Sans") {
+		font = "Andy"
+	}
+
 	version := q.Get("v")
 	if version == "" || (version != "1.4" && version != "1.3") {
-		version = "1.3"
+		version = "1.4"
 	}
 
 	config := ImgConfig{
@@ -85,6 +91,7 @@ func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 		borderWidth:  borderWidth,
 		cornerRadius: cornerRadius,
 		version:      version,
+		font:         font,
 	}
 
 	img, err := generateImage(q.Get("steamid64"), config)

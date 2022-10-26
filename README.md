@@ -14,6 +14,8 @@ Mod names with color chat tags will have their color changed.
 | `border_color`  | Hex color value without the # | Changes the border color                            |
 | `border_width`  | number                        | Border width in pixels                              |
 | `corner_radius` | number                        | corner radius, 0 for Rectangle                      |
+| `v`             | "1.3" or "1.4"                | changes the tML version                             |
+| `font`          | "Andy" or "Serif"             | changes the font                                    |
 
 ## Examples
 * `https://tml-readme-card.repl.co/?steamid64=76561198278789341`
