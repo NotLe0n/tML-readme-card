@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"image/color"
 	"io"
@@ -19,7 +18,7 @@ import (
 func errorJson(w http.ResponseWriter, msg string, code int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(`{"error":"` + msg + `"}`)
+	w.Write([]byte(msg))
 }
 
 var wg sync.WaitGroup

@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"html"
 	"image/color"
 	"log"
 	"math"
@@ -117,7 +119,7 @@ func run(config ImgConfig) ([]byte, error) {
 			DrawText(dc, strconv.Itoa(author.Mods[i].Rank), 30, modY+headerY, fontSize, config.textColor)
 
 			// Draw Display Name
-			displayNameColor, displayName := ParseChatTags(author.Mods[i].Display_name, config.textColor)
+			displayNameColor, displayName := ParseChatTags(html.UnescapeString(author.Mods[i].Display_name), config.textColor)
 			DrawText(dc, displayName, 120, modY+headerY, fontSize, displayNameColor)
 
 			// Draw downloads
@@ -183,5 +185,10 @@ func getJson(url string, target interface{}) error {
 	}
 	defer r.Body.Close()
 
+	if r.StatusCode != http.StatusOK {
+		return fmt.Errorf("request returned with status code: %d", r.StatusCode)
+	}
+
+	log.Println(r.StatusCode)
 	return json.NewDecoder(r.Body).Decode(&target)
 }
