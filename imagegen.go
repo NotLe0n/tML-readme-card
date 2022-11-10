@@ -12,7 +12,6 @@ import (
 	"math"
 	"net/http"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strconv"
 	"time"
@@ -31,6 +30,11 @@ type Author struct {
 	Total      uint32
 	Mods       []Mod
 	Steam_name string
+}
+
+type TextSnippet struct {
+	text  string
+	color color.Color
 }
 
 var myClient = &http.Client{Timeout: 20 * time.Second}
@@ -52,7 +56,7 @@ func generateImage(steamId string, config ImgConfig) ([]byte, error) {
 var imageWidth float64
 var imageHeight float64
 
-const padding float64 = 5.0
+const padding float64 = 15.0
 
 func run(config ImgConfig) ([]byte, error) {
 
@@ -112,18 +116,26 @@ func run(config ImgConfig) ([]byte, error) {
 
 		for i := 0; i < len(author.Mods); i++ {
 			_, nameTextHeight := dc.MeasureString(author.Mods[i].Display_name)
-			dowloadsTextWidth, _ := dc.MeasureString(strconv.Itoa(author.Mods[i].Downloads_total))
+			downloadsTextWidth, _ := dc.MeasureString(strconv.Itoa(author.Mods[i].Downloads_total))
 
 			modY := (nameTextHeight+padding)*float64(i) + (nameTextHeight * 2)
 			// Draw Rank
 			DrawText(dc, strconv.Itoa(author.Mods[i].Rank), 30, modY+headerY, fontSize, config.textColor)
 
 			// Draw Display Name
-			displayNameColor, displayName := ParseChatTags(html.UnescapeString(author.Mods[i].Display_name), config.textColor)
-			DrawText(dc, displayName, 120, modY+headerY, fontSize, displayNameColor)
+			displayNameSnippets := ParseChatTags(html.UnescapeString(author.Mods[i].Display_name), config.textColor)
+			for i, snippet := range displayNameSnippets {
+				lastTextWidth := 0.0
+				for _, prevSnippet := range displayNameSnippets[:i] {
+					measuredWidth, _ := dc.MeasureString(prevSnippet.text)
+					lastTextWidth += measuredWidth
+				}
+
+				DrawText(dc, snippet.text, 120+lastTextWidth, modY+headerY, fontSize, snippet.color)
+			}
 
 			// Draw downloads
-			DrawText(dc, strconv.Itoa(author.Mods[i].Downloads_total), imageWidth-dowloadsTextWidth-50, modY+headerY, fontSize, config.textColor)
+			DrawText(dc, strconv.Itoa(author.Mods[i].Downloads_total), imageWidth-downloadsTextWidth-50, modY+headerY, fontSize, config.textColor)
 		}
 	}
 
@@ -143,29 +155,57 @@ func DrawText(dc *gg.Context, s string, x float64, y float64, pnt float64, col c
 	dc.DrawString(s, x, y)
 }
 
-func ParseChatTags(str string, defaultColor color.Color) (textColor color.Color, text string) {
-	var compRegEx = regexp.MustCompile(`\[c/(?P<col>\w+):(?P<text>[\s\S]+?)]`)
+func ParseChatTags(str string, defaultColor color.Color) []TextSnippet {
+	snippets := make([]TextSnippet, 0)
 
-	if compRegEx.MatchString(str) {
-		match := compRegEx.FindStringSubmatch(str)
+	for index := 0; index < len(str); index++ {
+		if str[index] == '[' && str[index+1] == 'c' && str[index+2] == '/' {
+			index += 3 // skip '[c/'
 
-		paramsMap := make(map[string]string)
-		for i, name := range compRegEx.SubexpNames() {
-			if i > 0 && i <= len(match) {
-				paramsMap[name] = match[i]
+			// parse color code
+			colorCode := ""
+			// check for HEX number
+			for (str[index] >= 'A' && str[index] <= 'F') || (str[index] >= '0' && str[index] <= '9') {
+				colorCode += string(str[index])
+				index++
 			}
-		}
+			index++ // skip ':'
 
-		b, err := hex.DecodeString(paramsMap["col"])
-		if err != nil {
-			log.Println(err) //this should never happen, so we don't need to 'throw' the error, but if it happens we know where
-		}
-		col := color.RGBA{R: b[0], G: b[1], B: b[2], A: 255}
+			// read text until ']'
+			text := ""
+			for str[index] != ']' {
+				text += string(str[index])
+				index++
+			}
 
-		return col, paramsMap["text"]
+			b, err := hex.DecodeString(colorCode)
+			if err != nil {
+				log.Println(err) //this should never happen, so we don't need to 'throw' the error, but if it happens we know where
+			}
+			col := color.RGBA{R: b[0], G: b[1], B: b[2], A: 255}
+
+			snippets = append(snippets, TextSnippet{
+				text:  text,
+				color: col,
+			})
+		} else {
+			text := ""
+			for index < len(str) {
+				text += string(str[index])
+				if index+1 < len(str) && str[index+1] == '[' {
+					break
+				}
+
+				index++
+			}
+			snippets = append(snippets, TextSnippet{
+				text:  text,
+				color: defaultColor,
+			})
+		}
 	}
 
-	return defaultColor, str
+	return snippets
 }
 
 func ClampFloat(v float64, min float64, max float64) float64 {
@@ -189,6 +229,5 @@ func getJson(url string, target interface{}) error {
 		return fmt.Errorf("request returned with status code: %d", r.StatusCode)
 	}
 
-	log.Println(r.StatusCode)
 	return json.NewDecoder(r.Body).Decode(&target)
 }
