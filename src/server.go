@@ -4,36 +4,42 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/NotLe0n/tML-readme-card/src/widgets"
+	"github.com/g4s8/hexcolor"
 	"image/color"
 	"io"
 	"log"
 	"net/http"
 	"strconv"
 	"sync"
-
-	"github.com/g4s8/hexcolor"
 )
-
-// write an json error to w
-func errorJson(w http.ResponseWriter, msg string, code int) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	w.Write([]byte(msg))
-}
 
 var wg sync.WaitGroup
 
 var serverHandler *http.ServeMux
 var server http.Server
 
-type ImgConfig struct {
-	textColor    color.Color
-	bgColor      color.Color
-	borderColor  color.Color
-	borderWidth  uint64
-	cornerRadius uint64
-	version      string
-	font         string
+func main() {
+	serverHandler = http.NewServeMux()
+	server = http.Server{Addr: ":3000", Handler: serverHandler}
+
+	serverHandler.HandleFunc("/", generateImageHandler)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done() //tell the waiter group that we are finished at the end
+		cmdInterface()
+		log.Println("cmd goroutine finished")
+	}()
+
+	log.Println("server starting on Port 3000")
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Fatal(err.Error())
+	} else if err == http.ErrServerClosed {
+		log.Println("Server not listening anymore")
+	}
+
+	wg.Wait()
 }
 
 func generateImageHandler(w http.ResponseWriter, r *http.Request) {
@@ -83,47 +89,36 @@ func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 		version = "1.4"
 	}
 
-	config := ImgConfig{
-		textColor:    textColor,
-		bgColor:      bgColor,
-		borderColor:  borderColor,
-		borderWidth:  borderWidth,
-		cornerRadius: cornerRadius,
-		version:      version,
-		font:         font,
+	config := widgets.ImgConfig{
+		TextColor:    textColor,
+		BgColor:      bgColor,
+		BorderColor:  borderColor,
+		BorderWidth:  borderWidth,
+		CornerRadius: cornerRadius,
+		Version:      version,
+		Font:         font,
 	}
 
-	img, err := generateImage(q.Get("steamid64"), config)
-	if err != nil {
-		log.Println(err.Error())
-		errorJson(w, err.Error(), http.StatusInternalServerError)
-		return
+	if q.Has("steamid64") {
+		img, err := widgets.GenerateAuthorWidget(q.Get("steamid64"), config)
+		if err != nil {
+			log.Println(err.Error())
+			errorJson(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		io.Copy(w, bytes.NewReader(img))
+	} else if q.Has("modname") {
+		img, err := widgets.GenerateModWidget(q.Get("modname"), config)
+		if err != nil {
+			log.Println(err.Error())
+			errorJson(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		io.Copy(w, bytes.NewReader(img))
 	}
 
-	io.Copy(w, bytes.NewReader(img))
-}
-
-func main() {
-	serverHandler = http.NewServeMux()
-	server = http.Server{Addr: ":3000", Handler: serverHandler}
-
-	serverHandler.HandleFunc("/", generateImageHandler)
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done() //tell the waiter group that we are finished at the end
-		cmdInterface()
-		log.Println("cmd goroutine finished")
-	}()
-
-	log.Println("server starting on Port 3000")
-	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatal(err.Error())
-	} else if err == http.ErrServerClosed {
-		log.Println("Server not listening anymore")
-	}
-
-	wg.Wait()
 }
 
 func cmdInterface() {
@@ -146,4 +141,11 @@ func cmdInterface() {
 			}
 		}
 	}
+}
+
+// write a json error to w
+func errorJson(w http.ResponseWriter, msg string, code int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write([]byte(msg))
 }
