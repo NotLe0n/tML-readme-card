@@ -28,9 +28,12 @@ type mod struct {
 	Rank                int
 	Display_name        string
 	Downloads_total     int
-	Downloads_yesterday int
-	Icon                string
-	Last_updated        string
+	Downloads_yesterday int    // 1.3
+	Favorited           uint   // 1.4
+	Icon                string // 1.3
+	Workshop_icon_url   string // 1.4
+	Last_updated        string // 1.3
+	Time_updated        uint   // 1.4
 	Version             string
 }
 

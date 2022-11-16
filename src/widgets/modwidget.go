@@ -7,6 +7,7 @@ import (
 	"github.com/nfnt/resize"
 	"image/color"
 	"strconv"
+	"time"
 )
 
 func GenerateModWidget(modname string, config ImgConfig) ([]byte, error) {
@@ -65,7 +66,14 @@ func drawIcon(dc *gg.Context, config ImgConfig, mod mod) (float64, error) {
 	dc.Fill()
 
 	// draw mod icon
-	img, imgErr := getImage(mod.Icon)
+	var iconURL string
+	if config.Version == "1.3" {
+		iconURL = mod.Icon
+	} else {
+		iconURL = mod.Workshop_icon_url
+	}
+
+	img, imgErr := getImage(iconURL)
 	if imgErr != nil {
 		return 0, imgErr
 	}
@@ -110,9 +118,22 @@ func drawModInfoText(iconDim, imageWidth float64, dc *gg.Context, config ImgConf
 	yPos += fontHeight + 15
 	drawTextCentered(dc, strconv.Itoa(mod.Downloads_total)+" Downloads Total", 0, yPos, iconDim, imageWidth, color.White)
 	yPos += fontHeight + 15
-	drawTextCentered(dc, strconv.Itoa(mod.Downloads_yesterday)+" Downloads Yesterday", 0, yPos, iconDim, imageWidth, color.White)
+
+	if config.Version == "1.3" {
+		drawTextCentered(dc, strconv.Itoa(mod.Downloads_yesterday)+" Downloads Yesterday", 0, yPos, iconDim, imageWidth, color.White)
+	} else {
+		drawTextCentered(dc, strconv.Itoa(int(mod.Favorited))+" Favorites", 0, yPos, iconDim, imageWidth, color.White)
+	}
+
 	yPos += fontHeight + 15
-	drawTextCentered(dc, "Last updated: "+mod.Last_updated+" ("+mod.Version+")", 0, yPos, iconDim, imageWidth, color.White)
+
+	var lastUpdateTime string
+	if config.Version == "1.3" {
+		lastUpdateTime = mod.Last_updated
+	} else {
+		lastUpdateTime = time.Unix(int64(mod.Time_updated), 0).Format(time.RFC822)
+	}
+	drawTextCentered(dc, "Last updated: "+lastUpdateTime+" ("+mod.Version+")", 0, yPos, iconDim, imageWidth, color.White)
 
 	return nil
 }
