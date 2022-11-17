@@ -58,8 +58,14 @@ func drawAuthorWidget(author author, config ImgConfig) ([]byte, error) {
 		drawText(dc, "No mods found", 30, headerY+fontSize/2, imageWidth, imageHeight, config.TextColor)
 	} else {
 		// Draw header
-		drawText(dc, "Rank", 30, headerY, imageWidth, imageHeight, config.TextColor)
-		drawText(dc, "Display Name", 120, headerY, imageWidth, imageHeight, config.TextColor)
+		startX := 30.0
+		if config.Version == "1.3" {
+			drawText(dc, "Rank", startX, headerY, imageWidth, imageHeight, config.TextColor)
+		} else {
+			startX = -30.0
+		}
+
+		drawText(dc, "Display Name", startX+90, headerY, imageWidth, imageHeight, config.TextColor)
 		drawText(dc, "Downloads", imageWidth-190, headerY, imageWidth, imageHeight, config.TextColor)
 
 		// Draw line
@@ -76,13 +82,16 @@ func drawAuthorWidget(author author, config ImgConfig) ([]byte, error) {
 			downloadsTextWidth, _ := dc.MeasureString(strconv.Itoa(author.Mods[i].Downloads_total))
 
 			modY := (nameTextHeight+padding)*float64(i) + (nameTextHeight * 2)
-			// Draw Rank
-			drawText(dc, strconv.Itoa(author.Mods[i].Rank), 30, modY+headerY, imageWidth, imageHeight, config.TextColor)
+
+			if config.Version == "1.3" {
+				// Draw Rank
+				drawText(dc, strconv.Itoa(author.Mods[i].Rank), startX, modY+headerY, imageWidth, imageHeight, config.TextColor)
+			}
 
 			// Draw Display Name
 			displayNameSnippets := parseChatTags(html.UnescapeString(author.Mods[i].Display_name), config.TextColor)
 			drawSnippets(dc, displayNameSnippets, func(snippet textSnippet, prevTextWidth float64) {
-				drawText(dc, snippet.text, 120+prevTextWidth, modY+headerY, imageWidth, imageHeight, snippet.color)
+				drawText(dc, snippet.text, startX+90+prevTextWidth, modY+headerY, imageWidth, imageHeight, snippet.color)
 			})
 
 			// Draw downloads
