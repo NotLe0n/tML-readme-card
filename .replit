@@ -1,2 +1,5 @@
 language = "go"
-run = "go run ."
+run = "go run ./src/server.go"
+
+[nix]
+channel = "stable-21_11"
