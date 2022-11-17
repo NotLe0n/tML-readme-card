@@ -1,14 +1,17 @@
 # tML-readme-card
-This is a little widget to display the download count of your all of your tmodloader mods.
+This program can generate widgets to display tModLoader mod or author information, for use in embeds, a github README or elsewhere.
 
-Use `https://tml-readme-card.repl.co/?steamid64=<your steam64id>` to get the widget
+A hosted version of this program can be found on:
+Use `https://tml-readme-card.repl.co/` 
 
-Mod names with color chat tags will have their color changed.
+Mod names with color chat tags will have their color changed and the tags removed.
+tModLoader 1.3 and 1.4 have different mod browsers. Use the `v` parameter to specify the version (1.4 by default) 
 
 ## Parameters
 | Parameter       | Value                         | Effect                                              |
 |-----------------|-------------------------------|-----------------------------------------------------|
-| `steamid64`     | number                        | The user of which to display the mods from          |
+| `modname`       | string                        | Generates a mod widget using the mod's internal name|
+| `steamid64`     | number                        | Generates a author widget                           |
 | `text_color`    | Hex color value without the # | Changes the color of all text, except the mod names |
 | `bg_color`      | Hex color value without the # | Changes the background color                        |
 | `border_color`  | Hex color value without the # | Changes the border color                            |
@@ -18,8 +21,21 @@ Mod names with color chat tags will have their color changed.
 | `font`          | "Andy" or "Serif"             | changes the font                                    |
 
 ## Examples
-* `https://tml-readme-card.repl.co/?steamid64=76561198278789341`
-![example-widget](https://tml-readme-card.repl.co/?steamid64=76561198278789341&)
 
-* `https://tml-readme-card.repl.co/?steamid64=76561198278789341&border_width=1&corner_radius=60&border_color=FFFFFF&bg_color=0D1116`
-![example-widget-parameters](https://tml-readme-card.repl.co/?steamid64=76561198278789341&border_width=1&corner_radius=60&border_color=FFFFFF&bg_color=0D1116&)
+### 1.4 Mod
+* `https://tml-readme-card.repl.co/?modname=NoFishingQuests`
+![example-widget](https://tml-readme-card.repl.co/?modname=NoFishingQuests)
+
+### 1.3 Mod 
+* `https://tml-readme-card.repl.co/?modname=CraftablePaint&v=1.3`
+![example-widget](https://tml-readme-card.repl.co/?modname=CraftablePaint&v=1.3)
+
+
+### 1.4 Author - default styling
+* `https://tml-readme-card.repl.co/?steamid64=76561198278789341`
+![example-widget](https://tml-readme-card.repl.co/?steamid64=76561198278789341)
+
+
+### 1.3 Author - custom styling
+* `https://tml-readme-card.repl.co/?steamid64=76561198278789341&border_width=1&corner_radius=60&border_color=FFFFFF&bg_color=0D1116&v=1.3`
+![example-widget-parameters](https://tml-readme-card.repl.co/?steamid64=76561198278789341&border_width=1&corner_radius=60&border_color=FFFFFF&bg_color=0D1116&v=1.3)
