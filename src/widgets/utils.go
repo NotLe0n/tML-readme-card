@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/fogleman/gg"
 	"image"
 	"image/color"
 	"image/png"
@@ -12,6 +11,8 @@ import (
 	"net/http"
 	"path/filepath"
 	"time"
+
+	"github.com/fogleman/gg"
 )
 
 type ImgConfig struct {
@@ -35,6 +36,7 @@ type mod struct {
 	Last_updated        string // 1.3
 	Time_updated        uint   // 1.4
 	Version             string
+	Versions            []version // 1.4
 }
 
 type author struct {
@@ -46,6 +48,11 @@ type author struct {
 type textSnippet struct {
 	text  string
 	color color.Color
+}
+
+type version struct {
+	Mod_version        string
+	Tmodloader_version string
 }
 
 func parseChatTags(str string, defaultColor color.Color) []textSnippet {

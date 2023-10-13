@@ -3,11 +3,12 @@ package widgets
 import (
 	"bytes"
 	"errors"
-	"github.com/fogleman/gg"
-	"github.com/nfnt/resize"
 	"image/color"
 	"strconv"
 	"time"
+
+	"github.com/fogleman/gg"
+	"github.com/nfnt/resize"
 )
 
 func GenerateModWidget(modname string, config ImgConfig) ([]byte, error) {
@@ -16,7 +17,7 @@ func GenerateModWidget(modname string, config ImgConfig) ([]byte, error) {
 	}
 
 	var modStruct mod
-	if err := getJson("https://tmlapis.tomat.dev/"+config.Version+"/mod/"+modname, &modStruct); err != nil {
+	if err := getJson("https://tmlapis.le0n.dev/"+config.Version+"/mod/"+modname, &modStruct); err != nil {
 		return nil, err
 	}
 
@@ -128,12 +129,15 @@ func drawModInfoText(iconDim, imageWidth float64, dc *gg.Context, config ImgConf
 	yPos += fontHeight + 15
 
 	var lastUpdateTime string
+	var v string
 	if config.Version == "1.3" {
 		lastUpdateTime = mod.Last_updated
+		v = mod.Version
 	} else {
 		lastUpdateTime = time.Unix(int64(mod.Time_updated), 0).Format(time.RFC822)
+		v = "v" + mod.Versions[0].Mod_version
 	}
-	drawTextCentered(dc, "Last updated: "+lastUpdateTime+" ("+mod.Version+")", 0, yPos, iconDim, imageWidth, color.White)
+	drawTextCentered(dc, "Last updated: "+lastUpdateTime+" ("+v+")", 0, yPos, iconDim, imageWidth, color.White)
 
 	return nil
 }

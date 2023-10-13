@@ -3,11 +3,12 @@ package widgets
 import (
 	"bytes"
 	"errors"
-	"github.com/fogleman/gg"
 	"html"
 	"math"
 	"sort"
 	"strconv"
+
+	"github.com/fogleman/gg"
 )
 
 func GenerateAuthorWidget(steamId string, config ImgConfig) ([]byte, error) {
@@ -16,7 +17,7 @@ func GenerateAuthorWidget(steamId string, config ImgConfig) ([]byte, error) {
 	}
 
 	var author author
-	if err := getJson("https://tmlapis.tomat.dev/"+config.Version+"/author/"+steamId, &author); err != nil {
+	if err := getJson("https://tmlapis.le0n.dev/"+config.Version+"/author/"+steamId, &author); err != nil {
 		return nil, err
 	}
 

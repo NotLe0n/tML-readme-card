@@ -3,15 +3,18 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
-	"github.com/NotLe0n/tML-readme-card/src/widgets"
-	"github.com/g4s8/hexcolor"
 	"image/color"
 	"io"
 	"log"
 	"net/http"
 	"strconv"
 	"sync"
+
+	"github.com/NotLe0n/tML-readme-card/src/widgets"
+	"github.com/g4s8/hexcolor"
+	"github.com/spf13/viper"
 )
 
 var wg sync.WaitGroup
@@ -20,8 +23,10 @@ var serverHandler *http.ServeMux
 var server http.Server
 
 func main() {
+	setup_config()
+
 	serverHandler = http.NewServeMux()
-	server = http.Server{Addr: ":3000", Handler: serverHandler}
+	server = http.Server{Addr: ":" + viper.GetString("port"), Handler: serverHandler}
 
 	serverHandler.HandleFunc("/", generateImageHandler)
 
@@ -32,14 +37,43 @@ func main() {
 		log.Println("cmd goroutine finished")
 	}()
 
-	log.Println("server starting on Port 3000")
-	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatal(err.Error())
+	log.Println("server starting on Port " + viper.GetString("port"))
+	var err error
+	if viper.GetBool("useHTTPS") {
+		if viper.GetString("certPath") == "" || viper.GetString("keyPath") == "" {
+			log.Fatal("'certPath' or 'keyPath' cannot be empty")
+		}
+		err = server.ListenAndServeTLS(viper.GetString("certPath"), viper.GetString("keyPath"))
+	} else {
+		err = server.ListenAndServe()
+	}
+
+	if err != nil && err != http.ErrServerClosed {
+		log.Fatal(err)
 	} else if err == http.ErrServerClosed {
 		log.Println("Server not listening anymore")
 	}
 
 	wg.Wait()
+}
+
+func setup_config() {
+	viper.SetDefault("port", "8005")
+	viper.SetDefault("useHTTPS", false)
+	viper.SetDefault("certPath", "")
+	viper.SetDefault("certKey", "")
+
+	viper.SetConfigName("config")
+	viper.SetConfigType("json")
+	viper.AddConfigPath(".")
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("Error reading config file: %s\n", err)
+	}
+
+	json_string, err := json.MarshalIndent(viper.AllSettings(), "", "\t")
+	if err == nil {
+		log.Printf("using config: \n%s\n", json_string)
+	}
 }
 
 func generateImageHandler(w http.ResponseWriter, r *http.Request) {
