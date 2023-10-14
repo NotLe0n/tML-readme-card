@@ -80,7 +80,7 @@ func parseChatTags(str string, defaultColor color.Color) []textSnippet {
 
 			b, err := hex.DecodeString(colorCode)
 			if err != nil {
-				log.Println(err) //this should never happen, so we don't need to 'throw' the error, but if it happens we know where
+				log.Println("Error while decoding hex string: " + err.Error())
 			}
 			col := color.RGBA{R: b[0], G: b[1], B: b[2], A: 255}
 

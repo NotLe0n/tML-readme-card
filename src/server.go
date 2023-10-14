@@ -10,14 +10,15 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"sync"
+
+	//"sync"
 
 	"github.com/NotLe0n/tML-readme-card/src/widgets"
 	"github.com/g4s8/hexcolor"
 	"github.com/spf13/viper"
 )
 
-var wg sync.WaitGroup
+//var wg sync.WaitGroup
 
 var serverHandler *http.ServeMux
 var server http.Server
@@ -30,12 +31,13 @@ func main() {
 
 	serverHandler.HandleFunc("/", generateImageHandler)
 
-	wg.Add(1)
+	// spams logs for some reason
+	/*wg.Add(1)
 	go func() {
 		defer wg.Done() //tell the waiter group that we are finished at the end
 		cmdInterface()
 		log.Println("cmd goroutine finished")
-	}()
+	}()*/
 
 	log.Println("server starting on Port " + viper.GetString("port"))
 	var err error
@@ -49,12 +51,12 @@ func main() {
 	}
 
 	if err != nil && err != http.ErrServerClosed {
-		log.Fatal(err)
+		log.Fatal("Error while starting server: " + err.Error())
 	} else if err == http.ErrServerClosed {
 		log.Println("Server not listening anymore")
 	}
 
-	wg.Wait()
+	//wg.Wait()
 }
 
 func setup_config() {
@@ -78,7 +80,9 @@ func setup_config() {
 
 func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
-	log.Println("Got a request: " + r.URL.RawQuery)
+	if r.URL.RawQuery != "" {
+		log.Println("Got a request: " + r.URL.RawQuery)
+	}
 
 	if r.Method != http.MethodGet {
 		errorJson(w, "Method must be GET", http.StatusBadRequest)
@@ -136,7 +140,7 @@ func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 	if q.Has("steamid64") {
 		img, err := widgets.GenerateAuthorWidget(q.Get("steamid64"), config)
 		if err != nil {
-			log.Println(err.Error())
+			log.Println("Error while generating author widget: " + err.Error())
 			errorJson(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -145,7 +149,7 @@ func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 	} else if q.Has("modname") {
 		img, err := widgets.GenerateModWidget(q.Get("modname"), config)
 		if err != nil {
-			log.Println(err.Error())
+			log.Println("Error while generating mod widget" + err.Error())
 			errorJson(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -159,7 +163,7 @@ func cmdInterface() {
 	for loop := true; loop; {
 		var inp string
 		if _, err := fmt.Scanln(&inp); err != nil {
-			log.Println(err.Error())
+			log.Println("Error in CLI: " + err.Error())
 		} else {
 			switch inp {
 			case "quit":
