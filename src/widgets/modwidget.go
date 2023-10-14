@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"errors"
 	"image/color"
-	"strconv"
 	"time"
 
 	"github.com/fogleman/gg"
 	"github.com/nfnt/resize"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 func GenerateModWidget(modname string, config ImgConfig) ([]byte, error) {
@@ -86,6 +87,7 @@ func drawIcon(dc *gg.Context, config ImgConfig, mod mod) (float64, error) {
 }
 
 func drawModInfoText(iconDim, imageWidth float64, dc *gg.Context, config ImgConfig, mod mod) error {
+	prt := message.NewPrinter(language.AmericanEnglish)
 	// load header font
 	fontHeight, fontErr := loadFontSized(dc, config, 40)
 	if fontErr != nil {
@@ -117,13 +119,13 @@ func drawModInfoText(iconDim, imageWidth float64, dc *gg.Context, config ImgConf
 	}
 
 	yPos += fontHeight + 15
-	drawTextCentered(dc, strconv.Itoa(mod.Downloads_total)+" Downloads Total", 0, yPos, iconDim, imageWidth, color.White)
+	drawTextCentered(dc, prt.Sprintf("%d Downloads Total", mod.Downloads_total), 0, yPos, iconDim, imageWidth, color.White)
 	yPos += fontHeight + 15
 
 	if config.Version == "1.3" {
-		drawTextCentered(dc, strconv.Itoa(mod.Downloads_yesterday)+" Downloads Yesterday", 0, yPos, iconDim, imageWidth, color.White)
+		drawTextCentered(dc, prt.Sprintf("%d Downloads Yesterday", mod.Downloads_yesterday), 0, yPos, iconDim, imageWidth, color.White)
 	} else {
-		drawTextCentered(dc, strconv.Itoa(int(mod.Favorited))+" Favorites", 0, yPos, iconDim, imageWidth, color.White)
+		drawTextCentered(dc, prt.Sprintf("%d Favorites", mod.Favorited), 0, yPos, iconDim, imageWidth, color.White)
 	}
 
 	yPos += fontHeight + 15

@@ -6,9 +6,10 @@ import (
 	"html"
 	"math"
 	"sort"
-	"strconv"
 
 	"github.com/fogleman/gg"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 func GenerateAuthorWidget(steamId string, config ImgConfig) ([]byte, error) {
@@ -26,6 +27,7 @@ func GenerateAuthorWidget(steamId string, config ImgConfig) ([]byte, error) {
 
 func drawAuthorWidget(author author, config ImgConfig) ([]byte, error) {
 	const padding float64 = 15.0
+	prt := message.NewPrinter(language.AmericanEnglish)
 
 	bw := float64(config.BorderWidth) // stands for border width
 	imageWidth := 878.0
@@ -79,14 +81,15 @@ func drawAuthorWidget(author author, config ImgConfig) ([]byte, error) {
 		})
 
 		for i := 0; i < len(author.Mods); i++ {
+			downloadsStr := prt.Sprintf("%d", author.Mods[i].Downloads_total)
 			_, nameTextHeight := dc.MeasureString(author.Mods[i].Display_name)
-			downloadsTextWidth, _ := dc.MeasureString(strconv.Itoa(author.Mods[i].Downloads_total))
+			downloadsTextWidth, _ := dc.MeasureString(downloadsStr)
 
 			modY := (nameTextHeight+padding)*float64(i) + (nameTextHeight * 2)
 
 			if config.Version == "1.3" {
 				// Draw Rank
-				drawText(dc, strconv.Itoa(author.Mods[i].Rank), startX, modY+headerY, imageWidth, imageHeight, config.TextColor)
+				drawText(dc, prt.Sprint(author.Mods[i].Rank), startX, modY+headerY, imageWidth, imageHeight, config.TextColor)
 			}
 
 			// Draw Display Name
@@ -96,7 +99,7 @@ func drawAuthorWidget(author author, config ImgConfig) ([]byte, error) {
 			})
 
 			// Draw downloads
-			drawText(dc, strconv.Itoa(author.Mods[i].Downloads_total), imageWidth-downloadsTextWidth-50, modY+headerY, imageWidth, imageHeight, config.TextColor)
+			drawText(dc, downloadsStr, imageWidth-downloadsTextWidth-50, modY+headerY, imageWidth, imageHeight, config.TextColor)
 		}
 	}
 
