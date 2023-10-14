@@ -61,7 +61,7 @@ func setup_config() {
 	viper.SetDefault("port", "8005")
 	viper.SetDefault("useHTTPS", false)
 	viper.SetDefault("certPath", "")
-	viper.SetDefault("certKey", "")
+	viper.SetDefault("keyPath", "")
 
 	viper.SetConfigName("config")
 	viper.SetConfigType("json")
