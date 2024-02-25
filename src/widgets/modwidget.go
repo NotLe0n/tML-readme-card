@@ -90,7 +90,7 @@ func drawIcon(dc *gg.Context, config ImgConfig, mod mod) (float64, error) {
 func drawModInfoText(iconDim, imageWidth float64, dc *gg.Context, config ImgConfig, mod mod) error {
 	prt := message.NewPrinter(language.AmericanEnglish)
 	// load header font
-	fontHeight, fontErr := loadFontSized(dc, config, 40)
+	_, fontErr := loadFontSized(dc, config, 40)
 	if fontErr != nil {
 		return fontErr
 	}
@@ -121,7 +121,7 @@ func drawModInfoText(iconDim, imageWidth float64, dc *gg.Context, config ImgConf
 	})
 
 	// load dataFont
-	fontHeight, fontErr = loadFontSized(dc, config, 32)
+	fontHeight, fontErr := loadFontSized(dc, config, 32)
 	if fontErr != nil {
 		return fontErr
 	}

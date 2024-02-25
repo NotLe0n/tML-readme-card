@@ -56,6 +56,6 @@ The default config is as follows:
 ```
 
 ## License
-### Source Code
 All source code is licensed under GPL-2.0. 
+
 The file `Andy Bold.ttf` is a modification of the Andy typeface, designed by Steve Matteson and owned by Monotype Imaging, with cyrillic characters added by the [Translators Team](https://vk.com/translators_team). All rights belong to their respective owners.
