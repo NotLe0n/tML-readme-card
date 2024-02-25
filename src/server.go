@@ -141,7 +141,7 @@ func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 	} else if q.Has("modname") {
 		img, err := widgets.GenerateModWidget(q.Get("modname"), config)
 		if err != nil {
-			log.Println("Error while generating mod widget" + err.Error())
+			log.Println("Error while generating mod widget: " + err.Error())
 			errorJson(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

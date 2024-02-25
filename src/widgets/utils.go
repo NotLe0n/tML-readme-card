@@ -59,8 +59,9 @@ func parseChatTags(str string, defaultColor color.Color) []textSnippet {
 	snippets := make([]textSnippet, 0)
 
 	runes := []rune(str)
-	for i := 0; i < len(runes); {
+	for i := 0; i < len(runes); i++ {
 		if runes[i] == '[' && runes[i+1] == 'c' && runes[i+2] == '/' {
+
 			i += 3 // skip '[c/'
 
 			// parse color code
@@ -93,7 +94,7 @@ func parseChatTags(str string, defaultColor color.Color) []textSnippet {
 			text := ""
 			for i < len(runes) {
 				text += string(runes[i])
-				if i+1 < len(runes) && runes[i+1] == '[' {
+				if i+1 < len(str) && runes[i+1] == '[' {
 					break
 				}
 				i++
