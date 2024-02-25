@@ -58,24 +58,25 @@ type version struct {
 func parseChatTags(str string, defaultColor color.Color) []textSnippet {
 	snippets := make([]textSnippet, 0)
 
-	for index := 0; index < len(str); index++ {
-		if str[index] == '[' && str[index+1] == 'c' && str[index+2] == '/' {
-			index += 3 // skip '[c/'
+	runes := []rune(str)
+	for i := 0; i < len(runes); {
+		if runes[i] == '[' && runes[i+1] == 'c' && runes[i+2] == '/' {
+			i += 3 // skip '[c/'
 
 			// parse color code
 			colorCode := ""
 			// check for HEX number
-			for (str[index] >= 'A' && str[index] <= 'F') || (str[index] >= '0' && str[index] <= '9') {
-				colorCode += string(str[index])
-				index++
+			for (runes[i] >= 'A' && runes[i] <= 'F') || (runes[i] >= '0' && runes[i] <= '9') {
+				colorCode += string(runes[i])
+				i++
 			}
-			index++ // skip ':'
+			i++ // skip ':'
 
 			// read text until ']'
 			text := ""
-			for str[index] != ']' {
-				text += string(str[index])
-				index++
+			for runes[i] != ']' {
+				text += string(runes[i])
+				i++
 			}
 
 			b, err := hex.DecodeString(colorCode)
@@ -90,13 +91,12 @@ func parseChatTags(str string, defaultColor color.Color) []textSnippet {
 			})
 		} else {
 			text := ""
-			for index < len(str) {
-				text += string(str[index])
-				if index+1 < len(str) && str[index+1] == '[' {
+			for i < len(runes) {
+				text += string(runes[i])
+				if i+1 < len(runes) && runes[i+1] == '[' {
 					break
 				}
-
-				index++
+				i++
 			}
 			snippets = append(snippets, textSnippet{
 				text:  text,

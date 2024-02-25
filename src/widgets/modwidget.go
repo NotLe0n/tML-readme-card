@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"image/color"
+	"log"
 	"time"
 
 	"github.com/fogleman/gg"
@@ -104,12 +105,19 @@ func drawModInfoText(iconDim, imageWidth float64, dc *gg.Context, config ImgConf
 		fullStr += snippet.text
 	}
 
+	// calculate the scale
+	w, _ := dc.MeasureString(fullStr)
+	scale := min(640.0/w, 1)
+	// resize header font
+	_, _ = loadFontSized(dc, config, 40*scale)
+
+	log.Println(scale)
 	// draw all displayNameSnippets centered
 	drawSnippets(dc, displayNameSnippets, func(snippet textSnippet, prevTextWidth float64) {
 		// calculate the centered position
 		textStart := calculateCenteredInfoTextStart(fullStr, iconDim, imageWidth, dc)
 		dc.SetColor(snippet.color) // set color to snippet color
-		dc.DrawString(snippet.text, textStart+prevTextWidth, yPos)
+		dc.DrawString(snippet.text, (textStart + prevTextWidth), yPos)
 	})
 
 	// load dataFont

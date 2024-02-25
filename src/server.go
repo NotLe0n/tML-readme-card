@@ -27,17 +27,9 @@ func main() {
 	setup_config()
 
 	serverHandler = http.NewServeMux()
-	server = http.Server{Addr: ":" + viper.GetString("port"), Handler: serverHandler}
+	server = http.Server{Addr: "localhost:" + viper.GetString("port"), Handler: serverHandler}
 
 	serverHandler.HandleFunc("/", generateImageHandler)
-
-	// spams logs for some reason
-	/*wg.Add(1)
-	go func() {
-		defer wg.Done() //tell the waiter group that we are finished at the end
-		cmdInterface()
-		log.Println("cmd goroutine finished")
-	}()*/
 
 	log.Println("server starting on Port " + viper.GetString("port"))
 	var err error
