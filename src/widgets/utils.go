@@ -94,7 +94,7 @@ func parseChatTags(str string, defaultColor color.Color) []textSnippet {
 			text := ""
 			for i < len(runes) {
 				text += string(runes[i])
-				if i+1 < len(str) && runes[i+1] == '[' {
+				if i+1 < len(runes) && runes[i+1] == '[' {
 					break
 				}
 				i++
