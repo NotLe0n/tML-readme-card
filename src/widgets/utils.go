@@ -104,7 +104,7 @@ func loadFontSized(dc *gg.Context, config ImgConfig, fontSize float64) (float64,
 	// Load font
 	switch config.Font {
 	case "Andy":
-		fontPath = filepath.Join("fonts", "Andy Bold.ttf")
+		fontPath = filepath.Join("fonts", "Andy-Bold-RU-CN.ttf")
 	case "Sans":
 		fontPath = filepath.Join("fonts", "FreeSans.ttf")
 	}

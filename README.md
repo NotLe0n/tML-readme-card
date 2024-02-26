@@ -64,4 +64,9 @@ The default config is as follows:
 ## License
 All source code is licensed under GPL-2.0. 
 
-The file `Andy Bold.ttf` is a modification of the Andy typeface, designed by Steve Matteson and owned by Monotype Imaging, with cyrillic characters added by the [Translators Team](https://vk.com/translators_team). All rights belong to their respective owners.
+The file `Andy-Bold-RU-CN.ttf` is a modification of the Andy typeface with cyrillic and chinese characters added.
+* Andy Bold designed by Steve Matteson and owned by Monotype Imaging
+* Cyrillic characters added by the [Translators Team](https://vk.com/translators_team). 
+* Chinese Characters are from the font Hanyi Senty Rubber Candy by 王维 Wang Wei
+
+**All rights belong to their respective owners.**
