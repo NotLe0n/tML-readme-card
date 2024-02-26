@@ -74,7 +74,7 @@ func drawAuthorWidget(author author, config ImgConfig) ([]byte, error) {
 
 		for i := 0; i < len(author.Mods); i++ {
 			downloadsStr := prt.Sprintf("%d", author.Mods[i].Downloads_total)
-			_, nameTextHeight := dc.MeasureString(author.Mods[i].Display_name)
+			nameTextWidth, nameTextHeight := dc.MeasureString(author.Mods[i].Display_name)
 			downloadsTextWidth, _ := dc.MeasureString(downloadsStr)
 
 			modY := (nameTextHeight+padding)*float64(i) + (nameTextHeight * 2)
@@ -85,8 +85,17 @@ func drawAuthorWidget(author author, config ImgConfig) ([]byte, error) {
 			}
 
 			// Draw Display Name
+			scale := 610.0 / nameTextWidth
+			if scale < 1 {
+				_, _ = loadFontSized(dc, config, 35*scale) // resize font
+			}
+
 			displayNameSnippets := parseChatTags(html.UnescapeString(author.Mods[i].Display_name), config.TextColor)
 			drawSnippets(dc, displayNameSnippets, startX+90, headerY+modY)
+
+			if scale < 1 {
+				_, _ = loadFont(dc, config) // reset font size
+			}
 
 			// Draw downloads
 			drawBorderText(dc, downloadsStr, imageWidth-downloadsTextWidth-50, modY+headerY, config.TextColor)
