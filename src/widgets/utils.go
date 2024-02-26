@@ -25,34 +25,9 @@ type ImgConfig struct {
 	Font         string
 }
 
-type mod struct {
-	Rank                int
-	Display_name        string
-	Downloads_total     int
-	Downloads_yesterday int    // 1.3
-	Favorited           uint   // 1.4
-	Icon                string // 1.3
-	Workshop_icon_url   string // 1.4
-	Last_updated        string // 1.3
-	Time_updated        uint   // 1.4
-	Version             string
-	Versions            []version // 1.4
-}
-
-type author struct {
-	Total      uint32
-	Mods       []mod
-	Steam_name string
-}
-
 type textSnippet struct {
 	text  string
 	color color.Color
-}
-
-type version struct {
-	Mod_version        string
-	Tmodloader_version string
 }
 
 func parseChatTags(str string, defaultColor color.Color) []textSnippet {
@@ -155,21 +130,12 @@ func drawBorderText(dc *gg.Context, str string, x, y float64, col color.Color) {
 	dc.DrawString(str, x, y)
 }
 
-func drawText(dc *gg.Context, s string, x, y, imagewidth, imageheight float64, col color.Color) {
-	dc.SetColor(col)
-	textWidth, textHeight := dc.MeasureString(s)
-	x = clampFloat(x, 0, imagewidth-textWidth)
-	y = clampFloat(y, textHeight, imageheight-textHeight)
-	dc.DrawString(s, x, y)
-}
-
-func drawTextCentered(dc *gg.Context, str string, xOffset, y, iconDim, imageWidth float64, color color.Color) {
+func drawTextCentered(dc *gg.Context, str string, x, y, imageWidth float64, color color.Color) {
 	textWidth, _ := dc.MeasureString(str)
-	textStart := (imageWidth - textWidth + iconDim) / 2
-	drawBorderText(dc, str, textStart+xOffset, y, color)
+	drawBorderText(dc, str, (imageWidth-textWidth+x)/2, y, color)
 }
 
-func drawSnippets(dc *gg.Context, snippets []textSnippet, drawFunc func(snippet textSnippet, prevTextWidth float64)) {
+func drawSnippets(dc *gg.Context, snippets []textSnippet, x, y float64) {
 	for i, snippet := range snippets {
 		prevTextWidth := 0.0
 		for _, prevSnippet := range snippets[:i] {
@@ -177,18 +143,8 @@ func drawSnippets(dc *gg.Context, snippets []textSnippet, drawFunc func(snippet 
 			prevTextWidth += measuredWidth
 		}
 
-		drawFunc(snippet, prevTextWidth)
+		drawBorderText(dc, snippet.text, x+prevTextWidth, y, snippet.color)
 	}
-}
-
-func clampFloat(v float64, min float64, max float64) float64 {
-	if v < min {
-		return min
-	}
-	if v > max {
-		return max
-	}
-	return v
 }
 
 var myClient = &http.Client{Timeout: 20 * time.Second}

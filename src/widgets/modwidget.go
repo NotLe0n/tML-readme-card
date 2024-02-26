@@ -12,6 +12,25 @@ import (
 	"golang.org/x/text/message"
 )
 
+type mod struct {
+	Rank                int
+	Display_name        string
+	Downloads_total     int
+	Downloads_yesterday int    // 1.3
+	Favorited           uint   // 1.4
+	Icon                string // 1.3
+	Workshop_icon_url   string // 1.4
+	Last_updated        string // 1.3
+	Time_updated        uint   // 1.4
+	Version             string
+	Versions            []version // 1.4
+}
+
+type version struct {
+	Mod_version        string
+	Tmodloader_version string
+}
+
 func GenerateModWidget(modname string, config ImgConfig) ([]byte, error) {
 	if modname == "" {
 		return nil, errors.New("please enter a valid modname")
@@ -109,11 +128,12 @@ func drawModInfoText(iconDim, imageWidth float64, dc *gg.Context, config ImgConf
 	scale := min(640.0/w, 1)
 	// resize header font
 	_, _ = loadFontSized(dc, config, 40*scale)
+	// calculate the centered position
+	textWidth, _ := dc.MeasureString(fullStr)
+	textStart := (imageWidth - textWidth + iconDim) / 2
 
 	// draw all displayNameSnippets centered
-	drawSnippets(dc, displayNameSnippets, func(snippet textSnippet, prevTextWidth float64) {
-		drawTextCentered(dc, snippet.text, prevTextWidth, yPos, iconDim, imageWidth, snippet.color)
-	})
+	drawSnippets(dc, displayNameSnippets, textStart, yPos)
 
 	// load dataFont
 	fontHeight, fontErr := loadFontSized(dc, config, 32)
@@ -122,13 +142,13 @@ func drawModInfoText(iconDim, imageWidth float64, dc *gg.Context, config ImgConf
 	}
 
 	yPos += fontHeight + 15
-	drawTextCentered(dc, prt.Sprintf("%d Downloads Total", mod.Downloads_total), 0, yPos, iconDim, imageWidth, color.White)
+	drawTextCentered(dc, prt.Sprintf("%d Downloads Total", mod.Downloads_total), iconDim, yPos, imageWidth, color.White)
 	yPos += fontHeight + 15
 
 	if config.Version == "1.3" {
-		drawTextCentered(dc, prt.Sprintf("%d Downloads Yesterday", mod.Downloads_yesterday), 0, yPos, iconDim, imageWidth, color.White)
+		drawTextCentered(dc, prt.Sprintf("%d Downloads Yesterday", mod.Downloads_yesterday), iconDim, yPos, imageWidth, color.White)
 	} else {
-		drawTextCentered(dc, prt.Sprintf("%d Favorites", mod.Favorited), 0, yPos, iconDim, imageWidth, color.White)
+		drawTextCentered(dc, prt.Sprintf("%d Favorites", mod.Favorited), iconDim, yPos, imageWidth, color.White)
 	}
 
 	yPos += fontHeight + 15
@@ -142,7 +162,7 @@ func drawModInfoText(iconDim, imageWidth float64, dc *gg.Context, config ImgConf
 		lastUpdateTime = time.Unix(int64(mod.Time_updated), 0).Format(time.RFC822)
 		v = "v" + mod.Versions[0].Mod_version
 	}
-	drawTextCentered(dc, "Last updated: "+lastUpdateTime+" ("+v+")", 0, yPos, iconDim, imageWidth, color.White)
+	drawTextCentered(dc, "Last updated: "+lastUpdateTime+" ("+v+")", iconDim, yPos, imageWidth, color.White)
 
 	return nil
 }

@@ -4,13 +4,18 @@ import (
 	"bytes"
 	"errors"
 	"html"
-	"math"
 	"sort"
 
 	"github.com/fogleman/gg"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 )
+
+type author struct {
+	Total      uint32
+	Mods       []mod
+	Steam_name string
+}
 
 func GenerateAuthorWidget(steamId string, config ImgConfig) ([]byte, error) {
 	if steamId == "" {
@@ -31,8 +36,8 @@ func drawAuthorWidget(author author, config ImgConfig) ([]byte, error) {
 
 	bw := float64(config.BorderWidth) // stands for border width
 	imageWidth := 878.0
-	modListHeight := (32 + padding) * math.Max(float64(len(author.Mods)), 2)
-	imageHeight := 26.25 + 40 + bw*2 + modListHeight + 10
+	modListHeight := (30 + padding) * max(float64(len(author.Mods)), 2)
+	imageHeight := 26 + 40 + bw*2 + modListHeight + 10
 	dc := gg.NewContext(int(imageWidth), int(imageHeight)) // draw context
 
 	// Draw border
@@ -54,22 +59,22 @@ func drawAuthorWidget(author author, config ImgConfig) ([]byte, error) {
 
 	// Draw text
 	userNameWidth, userNameHeight := dc.MeasureString(author.Steam_name + "'s Stats")
-	drawText(dc, author.Steam_name+"'s Stats", (imageWidth-userNameWidth)/2, bw+35, imageWidth, imageHeight, config.TextColor)
+	drawBorderText(dc, author.Steam_name+"'s Stats", (imageWidth-userNameWidth)/2, bw+35, config.TextColor)
 
 	headerY := userNameHeight + 40 + bw*2
 	if len(author.Mods) == 0 {
-		drawText(dc, "No mods found", 30, headerY+fontSize/2, imageWidth, imageHeight, config.TextColor)
+		drawBorderText(dc, "No mods found", 30, headerY+fontSize/2, config.TextColor)
 	} else {
 		// Draw header
 		startX := 30.0
 		if config.Version == "1.3" {
-			drawText(dc, "Rank", startX, headerY, imageWidth, imageHeight, config.TextColor)
+			drawBorderText(dc, "Rank", startX, headerY, config.TextColor)
 		} else {
 			startX = -30.0
 		}
 
-		drawText(dc, "Display Name", startX+90, headerY, imageWidth, imageHeight, config.TextColor)
-		drawText(dc, "Downloads", imageWidth-190, headerY, imageWidth, imageHeight, config.TextColor)
+		drawBorderText(dc, "Display Name", startX+90, headerY, config.TextColor)
+		drawBorderText(dc, "Downloads", imageWidth-190, headerY, config.TextColor)
 
 		// Draw line
 		dc.SetLineWidth(2)
@@ -89,17 +94,15 @@ func drawAuthorWidget(author author, config ImgConfig) ([]byte, error) {
 
 			if config.Version == "1.3" {
 				// Draw Rank
-				drawText(dc, prt.Sprint(author.Mods[i].Rank), startX, modY+headerY, imageWidth, imageHeight, config.TextColor)
+				drawBorderText(dc, prt.Sprint(author.Mods[i].Rank), startX, modY+headerY, config.TextColor)
 			}
 
 			// Draw Display Name
 			displayNameSnippets := parseChatTags(html.UnescapeString(author.Mods[i].Display_name), config.TextColor)
-			drawSnippets(dc, displayNameSnippets, func(snippet textSnippet, prevTextWidth float64) {
-				drawText(dc, snippet.text, startX+90+prevTextWidth, modY+headerY, imageWidth, imageHeight, snippet.color)
-			})
+			drawSnippets(dc, displayNameSnippets, startX+90, headerY+modY)
 
 			// Draw downloads
-			drawText(dc, downloadsStr, imageWidth-downloadsTextWidth-50, modY+headerY, imageWidth, imageHeight, config.TextColor)
+			drawBorderText(dc, downloadsStr, imageWidth-downloadsTextWidth-50, modY+headerY, config.TextColor)
 		}
 	}
 
