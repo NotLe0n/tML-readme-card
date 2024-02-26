@@ -48,12 +48,7 @@ func drawModWidget(mod mod, config ImgConfig) ([]byte, error) {
 	imageWidth := 878.0
 	imageHeight := 240.0
 
-	dc := gg.NewContext(int(imageWidth), int(imageHeight)) // draw context
-
-	// Draw card background
-	dc.SetColor(config.BorderColor)
-	dc.DrawRoundedRectangle(0, 0, imageWidth, imageHeight, float64(config.CornerRadius))
-	dc.Fill()
+	dc := drawCard(config, imageWidth, imageHeight)
 
 	// draw mod icon
 	iconDim, err := drawIcon(dc, config, mod)
@@ -82,7 +77,7 @@ func drawIcon(dc *gg.Context, config ImgConfig, mod mod) (float64, error) {
 	iconPadding := 40.0
 
 	// draw icon background
-	dc.SetColor(config.BgColor)
+	dc.SetColor(config.BorderColor)
 	dc.DrawRoundedRectangle(cardPadding, cardPadding, iconSize+iconPadding, iconSize+iconPadding, float64(config.CornerRadius)-5)
 	dc.Fill()
 

@@ -6,7 +6,6 @@ import (
 	"html"
 	"sort"
 
-	"github.com/fogleman/gg"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 )
@@ -38,19 +37,7 @@ func drawAuthorWidget(author author, config ImgConfig) ([]byte, error) {
 	imageWidth := 878.0
 	modListHeight := (30 + padding) * max(float64(len(author.Mods)), 2)
 	imageHeight := 26 + 40 + bw*2 + modListHeight + 10
-	dc := gg.NewContext(int(imageWidth), int(imageHeight)) // draw context
-
-	// Draw border
-	dc.SetColor(config.BorderColor)
-	dc.DrawRoundedRectangle(0, 0, imageWidth, imageHeight, float64(config.CornerRadius))
-	dc.Fill()
-
-	// Draw background
-	w := imageWidth - (2.0 * bw)
-	h := imageHeight - (2.0 * bw)
-	dc.SetColor(config.BgColor)
-	dc.DrawRoundedRectangle(bw, bw, w, h, float64(config.CornerRadius))
-	dc.Fill()
+	dc := drawCard(config, imageWidth, imageHeight)
 
 	fontSize, fontErr := loadFont(dc, config)
 	if fontErr != nil {

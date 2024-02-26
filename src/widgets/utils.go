@@ -114,6 +114,25 @@ func loadFontSized(dc *gg.Context, config ImgConfig, fontSize float64) (float64,
 	return fontSize, fontErr
 }
 
+func drawCard(config ImgConfig, imageWidth, imageHeight float64) *gg.Context {
+	dc := gg.NewContext(int(imageWidth), int(imageHeight)) // draw context
+
+	// Draw border
+	dc.SetColor(config.BorderColor)
+	dc.DrawRoundedRectangle(0, 0, imageWidth, imageHeight, float64(config.CornerRadius))
+	dc.Fill()
+
+	// Draw background
+	bw := float64(config.BorderWidth) // stands for border width
+	w := imageWidth - (2.0 * bw)
+	h := imageHeight - (2.0 * bw)
+	dc.SetColor(config.BgColor)
+	dc.DrawRoundedRectangle(bw, bw, w, h, float64(config.CornerRadius-config.BorderWidth))
+	dc.Fill()
+
+	return dc
+}
+
 func drawBorderText(dc *gg.Context, str string, x, y float64, col color.Color) {
 	dc.SetColor(color.Black)
 	const n = 4 // "stroke" size

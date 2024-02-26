@@ -2,9 +2,7 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
-	"fmt"
 	"image/color"
 	"io"
 	"log"
@@ -91,17 +89,17 @@ func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 
 	bgColor, err := hexcolor.Parse("#" + q.Get("bg_color"))
 	if err != nil {
-		bgColor = color.RGBA{R: 25, G: 28, B: 30, A: 255} // dark gray
+		bgColor = color.RGBA{R: 35, G: 39, B: 42, A: 255} // light gray
 	}
 
 	borderColor, err := hexcolor.Parse("#" + q.Get("border_color"))
 	if err != nil {
-		borderColor = color.RGBA{R: 35, G: 39, B: 42, A: 255} // light gray
+		borderColor = color.RGBA{R: 25, G: 28, B: 30, A: 255} // dark gray
 	}
 
 	borderWidth, err := strconv.ParseUint(q.Get("border_width"), 10, 32)
 	if err != nil {
-		borderWidth = 4
+		borderWidth = 0
 	}
 
 	cornerRadius, err := strconv.ParseUint(q.Get("corner_radius"), 10, 32)
@@ -149,28 +147,6 @@ func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 		io.Copy(w, bytes.NewReader(img))
 	}
 
-}
-
-func cmdInterface() {
-	for loop := true; loop; {
-		var inp string
-		if _, err := fmt.Scanln(&inp); err != nil {
-			log.Println("Error in CLI: " + err.Error())
-		} else {
-			switch inp {
-			case "quit":
-				log.Println("Attempting to shutdown server")
-				err := server.Shutdown(context.Background())
-				if err != nil {
-					log.Fatal("Error while trying to shutdown server: " + err.Error())
-				}
-				log.Println("Server was shutdown")
-				loop = false
-			default:
-				fmt.Println("cmd not supported")
-			}
-		}
-	}
 }
 
 // write a json error to w

@@ -30,14 +30,17 @@ tModLoader 1.3 and 1.4 have different mod browsers. Use the `v` parameter to spe
 * `https://tml-card.le0n.dev/?modname=CraftablePaint&v=1.3`
 ![example-widget](https://tml-card.le0n.dev/?modname=CraftablePaint&v=1.3)
 
+### 1.3 Mod - custom styling
+* `https://tml-card.le0n.dev/?modname=SummonHeart&border_width=1&corner_radius=60&border_color=FFFFFF&bg_color=0D1116&v=1.3`
+![example-widget](https://tml-card.le0n.dev/?modname=SummonHeart&border_width=1&corner_radius=60&border_color=FFFFFF&bg_color=0D1116&v=1.3)
+
 ### 1.4 Mod - custom styling
-* `https://tml-card.le0n.dev/?modname=BetterRussian`
-![example-widget](https://tml-card.le0n.dev/?modname=BetterRussian)
+* `https://tml-card.le0n.dev/?modname=BetterRussian&bg_color=F1F2F4&border_color=DCDFE4`
+![example-widget](https://tml-card.le0n.dev/?modname=BetterRussian&bg_color=F1F2F4&border_color=DCDFE4)
 
 ### 1.4 Author - default styling
 * `https://tml-card.le0n.dev/?steamid64=76561198278789341`
 ![example-widget](https://tml-card.le0n.dev/?steamid64=76561198278789341)
-
 
 ### 1.3 Author - custom styling
 * `https://tml-card.le0n.dev/?steamid64=76561198278789341&border_width=1&corner_radius=60&border_color=FFFFFF&bg_color=0D1116&v=1.3`
