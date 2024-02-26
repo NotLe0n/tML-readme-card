@@ -112,10 +112,7 @@ func drawModInfoText(iconDim, imageWidth float64, dc *gg.Context, config ImgConf
 
 	// draw all displayNameSnippets centered
 	drawSnippets(dc, displayNameSnippets, func(snippet textSnippet, prevTextWidth float64) {
-		// calculate the centered position
-		textStart := calculateCenteredInfoTextStart(fullStr, iconDim, imageWidth, dc)
-		dc.SetColor(snippet.color) // set color to snippet color
-		dc.DrawString(snippet.text, (textStart + prevTextWidth), yPos)
+		drawTextCentered(dc, snippet.text, prevTextWidth, yPos, iconDim, imageWidth, snippet.color)
 	})
 
 	// load dataFont
@@ -148,9 +145,4 @@ func drawModInfoText(iconDim, imageWidth float64, dc *gg.Context, config ImgConf
 	drawTextCentered(dc, "Last updated: "+lastUpdateTime+" ("+v+")", 0, yPos, iconDim, imageWidth, color.White)
 
 	return nil
-}
-
-func calculateCenteredInfoTextStart(text string, iconDim, imageWidth float64, dc *gg.Context) float64 {
-	textWidth, _ := dc.MeasureString(text)
-	return (imageWidth - textWidth + iconDim) / 2
 }

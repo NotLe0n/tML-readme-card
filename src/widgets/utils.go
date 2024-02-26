@@ -139,6 +139,22 @@ func loadFontSized(dc *gg.Context, config ImgConfig, fontSize float64) (float64,
 	return fontSize, fontErr
 }
 
+func drawBorderText(dc *gg.Context, str string, x, y float64, col color.Color) {
+	dc.SetColor(color.Black)
+	const n = 4 // "stroke" size
+	for dy := -n; dy <= n; dy++ {
+		for dx := -n; dx <= n; dx++ {
+			if dx*dx+dy*dy >= n*n {
+				// give it rounded corners
+				continue
+			}
+			dc.DrawString(str, x+float64(dx), y+float64(dy))
+		}
+	}
+	dc.SetColor(col)
+	dc.DrawString(str, x, y)
+}
+
 func drawText(dc *gg.Context, s string, x, y, imagewidth, imageheight float64, col color.Color) {
 	dc.SetColor(col)
 	textWidth, textHeight := dc.MeasureString(s)
@@ -148,9 +164,9 @@ func drawText(dc *gg.Context, s string, x, y, imagewidth, imageheight float64, c
 }
 
 func drawTextCentered(dc *gg.Context, str string, xOffset, y, iconDim, imageWidth float64, color color.Color) {
-	textStart := calculateCenteredInfoTextStart(str, iconDim, imageWidth, dc)
-	dc.SetColor(color)
-	dc.DrawString(str, textStart+xOffset, y)
+	textWidth, _ := dc.MeasureString(str)
+	textStart := (imageWidth - textWidth + iconDim) / 2
+	drawBorderText(dc, str, textStart+xOffset, y, color)
 }
 
 func drawSnippets(dc *gg.Context, snippets []textSnippet, drawFunc func(snippet textSnippet, prevTextWidth float64)) {

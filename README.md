@@ -18,18 +18,21 @@ tModLoader 1.3 and 1.4 have different mod browsers. Use the `v` parameter to spe
 | `border_width`  | number                        | Border width in pixels                              |
 | `corner_radius` | number                        | corner radius, 0 for Rectangle                      |
 | `v`             | "1.3" or "1.4"                | changes the tML version                             |
-| `font`          | "Andy" or "Serif"             | changes the font                                    |
+| `font`          | "Andy" or "Sans"              | changes the font                                    |
 
 ## Examples
 
-### 1.4 Mod
+### 1.4 Mod - default styling
 * `https://tml-card.le0n.dev/?modname=NoFishingQuests`
 ![example-widget](https://tml-card.le0n.dev/?modname=NoFishingQuests)
 
-### 1.3 Mod 
+### 1.3 Mod - default styling
 * `https://tml-card.le0n.dev/?modname=CraftablePaint&v=1.3`
 ![example-widget](https://tml-card.le0n.dev/?modname=CraftablePaint&v=1.3)
 
+### 1.4 Mod - custom styling
+* `https://tml-card.le0n.dev/?modname=BetterRussian`
+![example-widget](https://tml-card.le0n.dev/?modname=BetterRussian)
 
 ### 1.4 Author - default styling
 * `https://tml-card.le0n.dev/?steamid64=76561198278789341`
