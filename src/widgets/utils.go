@@ -85,18 +85,7 @@ func parseChatTags(str string, defaultColor color.Color) []textSnippet {
 }
 
 func loadFont(dc *gg.Context, config ImgConfig) (float64, error) {
-	fontPath := ""
-	// Load font
-	switch config.Font {
-	case "Andy":
-		fontPath = filepath.Join("fonts", "Andy Bold.ttf")
-	case "Sans":
-		fontPath = filepath.Join("fonts", "FreeSans.ttf")
-	}
-	fontSize := 35.0
-	fontErr := dc.LoadFontFace(fontPath, fontSize)
-
-	return fontSize, fontErr
+	return loadFontSized(dc, config, 35)
 }
 
 func loadFontSized(dc *gg.Context, config ImgConfig, fontSize float64) (float64, error) {
