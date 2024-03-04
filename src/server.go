@@ -58,6 +58,7 @@ func setup_config() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("json")
 	viper.AddConfigPath(".")
+	viper.SafeWriteConfig()
 	if err := viper.ReadInConfig(); err != nil {
 		log.Fatalf("Error reading config file: %s\n", err)
 	}

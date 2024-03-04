@@ -47,7 +47,7 @@ tModLoader 1.3 and 1.4 have different mod browsers. Use the `v` parameter to spe
 ![example-widget-parameters](https://tml-card.le0n.dev/?steamid64=76561198278789341&border_width=1&corner_radius=60&border_color=FFFFFF&bg_color=0D1116&v=1.3)
 
 ## Hosting Locally
-1. Create config.json (for default values, write: `{}`)
+1. Clone the repository
 2. Run the server using `go run ./src`
 
 ### Config
