@@ -25,7 +25,7 @@ func main() {
 	setup_config()
 
 	serverHandler = http.NewServeMux()
-	server = http.Server{Addr: "localhost:" + viper.GetString("port"), Handler: serverHandler}
+	server = http.Server{Addr: viper.GetString("ip") + ":" + viper.GetString("port"), Handler: serverHandler}
 
 	serverHandler.HandleFunc("/", generateImageHandler)
 
@@ -50,6 +50,7 @@ func main() {
 }
 
 func setup_config() {
+	viper.SetDefault("ip", "localhost")
 	viper.SetDefault("port", "8005")
 	viper.SetDefault("useHTTPS", false)
 	viper.SetDefault("certPath", "")
@@ -146,6 +147,8 @@ func generateImageHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		io.Copy(w, bytes.NewReader(img))
+	} else {
+		errorJson(w, "modname or steamid64 is required", 400)
 	}
 
 }
