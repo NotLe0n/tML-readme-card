@@ -6,6 +6,7 @@ import (
 	"html"
 	"sort"
 
+	"github.com/spf13/viper"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 )
@@ -22,7 +23,7 @@ func GenerateAuthorWidget(steamId string, config ImgConfig) ([]byte, error) {
 	}
 
 	var author author
-	if err := getJson("https://tmlapis.le0n.dev/"+config.Version+"/author/"+steamId, &author); err != nil {
+	if err := getJson(viper.GetString("api")+config.Version+"/author/"+steamId, &author); err != nil {
 		return nil, err
 	}
 

@@ -29,14 +29,16 @@ func main() {
 
 	serverHandler.HandleFunc("/", generateImageHandler)
 
-	log.Println("server starting on Port " + viper.GetString("port"))
 	var err error
 	if viper.GetBool("useHTTPS") {
 		if viper.GetString("certPath") == "" || viper.GetString("keyPath") == "" {
-			log.Fatal("'certPath' or 'keyPath' cannot be empty")
+			log.Fatal("'certPath' or 'keyPath' cannot be empty if 'useHTTPS' is true!")
 		}
+
+		log.Println("HTTPS server starting on " + server.Addr)
 		err = server.ListenAndServeTLS(viper.GetString("certPath"), viper.GetString("keyPath"))
 	} else {
+		log.Println("HTTP server starting on " + server.Addr)
 		err = server.ListenAndServe()
 	}
 
@@ -52,6 +54,7 @@ func main() {
 func setup_config() {
 	viper.SetDefault("ip", "localhost")
 	viper.SetDefault("port", "8005")
+	viper.SetDefault("api", "https://tmlapis.le0n.dev")
 	viper.SetDefault("useHTTPS", false)
 	viper.SetDefault("certPath", "")
 	viper.SetDefault("keyPath", "")

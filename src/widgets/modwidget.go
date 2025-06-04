@@ -8,6 +8,7 @@ import (
 
 	"github.com/fogleman/gg"
 	"github.com/nfnt/resize"
+	"github.com/spf13/viper"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 )
@@ -37,7 +38,7 @@ func GenerateModWidget(modname string, config ImgConfig) ([]byte, error) {
 	}
 
 	var modStruct mod
-	if err := getJson("https://tmlapis.le0n.dev/"+config.Version+"/mod/"+modname, &modStruct); err != nil {
+	if err := getJson(viper.GetString("api")+"/"+config.Version+"/mod/"+modname, &modStruct); err != nil {
 		return nil, err
 	}
 
