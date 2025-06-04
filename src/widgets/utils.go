@@ -23,7 +23,6 @@ type ImgConfig struct {
 	CornerRadius uint64
 	Version      string
 	Font         string
-	Api          string
 }
 
 type textSnippet struct {
