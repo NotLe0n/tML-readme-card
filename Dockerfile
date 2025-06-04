@@ -11,7 +11,12 @@ COPY config.json ./
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o tml-readme-card ./src
 
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y \
+    libssl3 \
+    ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
