@@ -23,7 +23,7 @@ func GenerateAuthorWidget(steamId string, config ImgConfig) ([]byte, error) {
 	}
 
 	var author author
-	if err := getJson(viper.GetString("api")+config.Version+"/author/"+steamId, &author); err != nil {
+	if err := getJson(viper.GetString("api")+"/"+config.Version+"/author/"+steamId, &author); err != nil {
 		return nil, err
 	}
 
