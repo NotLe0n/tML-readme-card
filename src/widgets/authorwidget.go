@@ -62,19 +62,34 @@ func drawAuthorWidget(author author, config ImgConfig) ([]byte, error) {
 		}
 
 		drawBorderText(dc, "Display Name", startX+90, headerY, config.TextColor)
-		drawBorderText(dc, "Downloads", imageWidth-190, headerY, config.TextColor)
+		if config.Version == "1.3" {
+			drawBorderText(dc, "Downloads", imageWidth-190, headerY, config.TextColor)
+		} else {
+			drawBorderText(dc, "Subscriptions", imageWidth-215, headerY, config.TextColor)
+		}
 
 		// Draw line
 		dc.SetLineWidth(2)
 		dc.DrawLine(30, headerY+5, imageWidth-30, headerY+5)
 		dc.Stroke()
 
-		sort.Slice(author.Mods, func(i, j int) bool {
-			return author.Mods[i].Downloads_total > author.Mods[j].Downloads_total
-		})
+		if config.Version == "1.3" {
+			sort.Slice(author.Mods, func(i, j int) bool {
+				return author.Mods[i].Downloads_total > author.Mods[j].Downloads_total
+			})
+		} else {
+			sort.Slice(author.Mods, func(i, j int) bool {
+				return author.Mods[i].Subscriptions > author.Mods[j].Subscriptions
+			})
+		}
 
 		for i := 0; i < len(author.Mods); i++ {
-			downloadsStr := prt.Sprintf("%d", author.Mods[i].Downloads_total)
+			var downloadsStr string
+			if config.Version == "1.3" {
+				downloadsStr = prt.Sprintf("%d", author.Mods[i].Downloads_total)
+			} else {
+				downloadsStr = prt.Sprintf("%d", author.Mods[i].Subscriptions)
+			}
 			nameTextWidth, nameTextHeight := dc.MeasureString(author.Mods[i].Display_name)
 			downloadsTextWidth, _ := dc.MeasureString(downloadsStr)
 

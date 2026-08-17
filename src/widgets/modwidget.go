@@ -16,7 +16,8 @@ import (
 type mod struct {
 	Rank                int
 	Display_name        string
-	Downloads_total     int
+	Downloads_total     int    // 1.3
+	Subscriptions       int    // 1.4
 	Downloads_yesterday int    // 1.3
 	Favorited           uint   // 1.4
 	Icon                string // 1.3
@@ -138,7 +139,11 @@ func drawModInfoText(iconDim, imageWidth float64, dc *gg.Context, config ImgConf
 	}
 
 	yPos += fontHeight + 15
-	drawTextCentered(dc, prt.Sprintf("%d Downloads Total", mod.Downloads_total), iconDim, yPos, imageWidth, color.White)
+	if config.Version == "1.3" {
+		drawTextCentered(dc, prt.Sprintf("%d Downloads Total", mod.Downloads_total), iconDim, yPos, imageWidth, color.White)
+	} else {
+		drawTextCentered(dc, prt.Sprintf("%d Subscriptions", mod.Subscriptions), iconDim, yPos, imageWidth, color.White)
+	}
 	yPos += fontHeight + 15
 
 	if config.Version == "1.3" {
